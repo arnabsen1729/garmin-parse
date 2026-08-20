@@ -1,9 +1,10 @@
 ---
 id: TASK-2
 title: Add .gitignore
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-20 19:47'
+updated_date: '2026-08-20 20:55'
 labels: []
 milestone: m-0
 dependencies: []
@@ -22,3 +23,9 @@ Exclude .venv, __pycache__, *.pyc, .env, and any local garth token cache path fr
 - [ ] #1 .venv/, __pycache__/, *.pyc, .env are ignored
 - [ ] #2 git status shows no venv/cache noise after uv sync
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Added .gitignore covering .venv/, __pycache__/, *.pyc, .env, *.egg-info/.
+<!-- SECTION:NOTES:END -->

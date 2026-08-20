@@ -1,0 +1,20 @@
+[project]
+name = "garmin-parse"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Arnab Sen", email = "arnabsen1729@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "garminconnect>=0.3.11",
+    "typer>=0.27.1",
+]
+
+[project.scripts]
+garmin-parse = "garmin_parse:main"
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"

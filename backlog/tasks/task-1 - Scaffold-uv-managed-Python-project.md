@@ -1,9 +1,10 @@
 ---
 id: TASK-1
 title: Scaffold uv-managed Python project
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-20 19:47'
+updated_date: '2026-08-20 20:55'
 labels: []
 milestone: m-0
 dependencies: []
@@ -23,3 +24,9 @@ Initialize pyproject.toml + src/garmin_parse layout via uv; add garminconnect an
 - [ ] #2 garminconnect and typer added via uv add and present in pyproject.toml/uv.lock
 - [ ] #3 uv run python -c 'import garmin_parse' succeeds
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+uv init --package + uv add garminconnect typer; src/garmin_parse package created, deps resolved in pyproject.toml/uv.lock.
+<!-- SECTION:NOTES:END -->
