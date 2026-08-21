@@ -20,11 +20,11 @@ jobs:
         run: uv sync --locked
 
       - name: Restore cached Garmin session
+        env:
+          GARMIN_TOKENSTORE: ${{ secrets.GARMIN_TOKENSTORE }}
         run: |
           mkdir -p ~/.garminconnect
-          cat > ~/.garminconnect/garmin_tokens.json <<'EOF'
-          ${{ secrets.GARMIN_TOKENSTORE }}
-          EOF
+          printf '%s' "$GARMIN_TOKENSTORE" > ~/.garminconnect/garmin_tokens.json
 
       - name: Run sync
         id: sync
