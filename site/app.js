@@ -73,6 +73,12 @@ function activityCategory(sportKey) {
   return "other";
 }
 
+// Only these categories have a meaningful distance figure. Garmin still
+// writes a (usually tiny, GPS-drift) Distance field for things like indoor
+// cycling or badminton — per the mockup, that's noise, not data, and is
+// suppressed by category rather than by checking whether the value is > 0.
+const DISTANCE_CATEGORIES = new Set(["running", "cycling", "swimming"]);
+
 /* ------------------------------------------------------------------ */
 /* Markdown parser for render.py's output                              */
 /*                                                                      */
@@ -289,6 +295,16 @@ function parseActivityDate(record) {
   return new Date(record.date + "T00:00:00");
 }
 
+// "Thu 20 Aug 2026 · 09:21" — the detail hero's human-readable date, per the
+// mockup. The raw "Date" field ("2026-08-20 09:21") is only ever used to
+// derive this, never shown directly.
+function formatHeroDate(record) {
+  const when = parseActivityDate(record);
+  const datePart = when.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  const timePart = when.toLocaleString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `${datePart} · ${timePart}`;
+}
+
 function primarySecondaryLines(record) {
   const g = record.parsed.generic;
   const category = activityCategory(record.sportKey);
@@ -297,7 +313,7 @@ function primarySecondaryLines(record) {
   const avgHr = g["Average HR"];
   const calories = g["Calories"];
   const avgSpeed = numFromField(g["Average Speed"]);
-  const hasDistance = distance != null && distance > 0;
+  const hasDistance = DISTANCE_CATEGORIES.has(category) && distance != null && distance > 0;
 
   if (category === "strength") {
     const sets = record.parsed.typeFields["Total Sets"];
@@ -401,11 +417,12 @@ async function renderList() {
 
       const header = document.createElement("div");
       header.className = "list-group-header";
-      const countLabel = `${group.records.length} activit${group.records.length === 1 ? "y" : "ies"}`;
+      // Terse "6 · 13.11 km" per the mockup — not "6 activities · 13.11 km".
       const distLabel = totalDistance > 0 ? ` · ${totalDistance.toFixed(2)} km` : "";
+      const summary = `${group.records.length}${distLabel}`;
       header.innerHTML = `
         <span class="list-group-title">${escapeHtml(label)}</span>
-        <span class="list-group-summary">${escapeHtml(countLabel + distLabel)}</span>
+        <span class="list-group-summary">${escapeHtml(summary)}</span>
       `;
       section.appendChild(header);
 
@@ -456,11 +473,12 @@ function statCell(label, value) {
 function buildStatGrid(g, category) {
   const distance = numFromField(g["Distance"]);
   const avgSpeed = numFromField(g["Average Speed"]);
-  const hasDistance = distance != null && distance > 0;
+  const hasDistance = DISTANCE_CATEGORIES.has(category) && distance != null && distance > 0;
 
   const cells = [];
-  if (g["Duration"]) cells.push(statCell("Duration", g["Duration"]));
+  // Distance before Duration, per the mockup's cell order.
   if (hasDistance && g["Distance"]) cells.push(statCell("Distance", g["Distance"]));
+  if (g["Duration"]) cells.push(statCell("Duration", g["Duration"]));
 
   if (hasDistance && category === "running" && avgSpeed) {
     cells.push(statCell("Avg Pace", paceFromSpeedKmh(avgSpeed)));
@@ -469,16 +487,23 @@ function buildStatGrid(g, category) {
   }
   if (hasDistance && g["Max Speed"]) cells.push(statCell("Max Speed", g["Max Speed"]));
   // Note: render.py already bakes the unit into these field values (e.g.
-  // "775 kcal", "146 bpm"), so they're used as-is without appending units.
+  // "775 kcal"), so it's used as-is without appending a unit.
   if (g["Calories"]) cells.push(statCell("Calories", g["Calories"]));
-  if (g["Average HR"]) cells.push(statCell("Avg HR", g["Average HR"]));
-  if (g["Max HR"]) cells.push(statCell("Max HR", g["Max HR"]));
+  // Avg/Max HR deliberately excluded here — per the mockup they appear as a
+  // caption next to the "Heart Rate Zones" heading instead (see
+  // buildHrZones), not as their own stat-grid cells.
 
   return cells.join("");
 }
 
-function buildHrZones(hrZones) {
+function buildHrZones(hrZones, avgHr, maxHr) {
   if (!hrZones || hrZones.length === 0) return "";
+  const captionParts = [];
+  if (avgHr) captionParts.push(`avg ${avgHr}`);
+  if (maxHr) captionParts.push(`max ${maxHr}`);
+  const caption = captionParts.length
+    ? `<span class="section-caption">${escapeHtml(captionParts.join(" · "))}</span>`
+    : "";
   const secsByZone = hrZones.map(({ time }) => durationToSeconds(time) || 0);
   const peakSecs = Math.max(...secsByZone);
   // Bars are scaled relative to the *busiest* zone, not the activity's total
@@ -498,7 +523,7 @@ function buildHrZones(hrZones) {
         </div>`;
     })
     .join("");
-  return `<div class="section"><div class="section-title">Heart Rate Zones</div>${rows}</div>`;
+  return `<div class="section"><div class="section-title-row"><div class="section-title">Heart Rate Zones</div>${caption}</div>${rows}</div>`;
 }
 
 function buildTrainingEffect(g) {
@@ -555,15 +580,25 @@ const DYNAMICS_LABELS = {
   },
 };
 
+const DYNAMICS_HEADING_OVERRIDES = { running: "Running Dynamics" };
+
 function buildDynamics(g, typeFields, typeTitle, category, exerciseRows) {
   const labelMap = DYNAMICS_LABELS[category];
   const items = [];
 
   if (category === "running") {
     // Elevation lives in the generic section but reads naturally alongside
-    // running dynamics per the design's grouping.
-    if (g["Elevation Gain"]) items.push(["Elevation Gain", g["Elevation Gain"]]);
-    if (g["Elevation Loss"]) items.push(["Elevation Loss", g["Elevation Loss"]]);
+    // running dynamics per the design's grouping — as one combined
+    // "X / Y m" row, not two separate items, per the mockup.
+    const gain = g["Elevation Gain"];
+    const loss = g["Elevation Loss"];
+    if (gain || loss) {
+      const gainSplit = splitValueUnit(gain);
+      const lossSplit = splitValueUnit(loss);
+      const unit = gainSplit.unit || lossSplit.unit || "";
+      const value = `${gainSplit.num || "–"} / ${lossSplit.num || "–"}${unit ? " " + unit : ""}`;
+      items.push(["Elevation Gain / Loss", value]);
+    }
   }
 
   if (labelMap) {
@@ -592,7 +627,7 @@ function buildDynamics(g, typeFields, typeTitle, category, exerciseRows) {
       </table>`
       : "";
 
-  const heading = typeTitle || "Dynamics";
+  const heading = DYNAMICS_HEADING_OVERRIDES[category] || typeTitle || "Dynamics";
   return `<div class="section"><div class="section-title">${escapeHtml(heading)}</div>${grid ? `<div class="dynamics-grid">${grid}</div>` : ""}${exerciseTable}</div>`;
 }
 
@@ -627,12 +662,12 @@ async function renderDetail(path) {
       <span class="icon-tile" style="--row-accent: var(${sportColorVar(entry.sportKey || "")})">${iconSvg(iconFor(entry.sportKey || ""))}</span>
       <span>
         <div class="hero-sport" style="color: var(${sportColorVar(entry.sportKey || "")})">${escapeHtml(sportLabel)}</div>
-        <div class="hero-date">${escapeHtml(g["Date"] || entry.date || "")}</div>
+        <div class="hero-date">${escapeHtml(formatHeroDate(record))}</div>
       </span>
     `;
 
     document.getElementById("detail-stats").innerHTML = buildStatGrid(g, category);
-    document.getElementById("detail-hr").innerHTML = buildHrZones(hrZones);
+    document.getElementById("detail-hr").innerHTML = buildHrZones(hrZones, g["Average HR"], g["Max HR"]);
     document.getElementById("detail-te").innerHTML = buildTrainingEffect(g);
     document.getElementById("detail-dynamics").innerHTML = buildDynamics(
       g,

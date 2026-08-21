@@ -148,6 +148,11 @@ button {
 
 @media (min-width: 900px) {
   .list-title { font-size: 25px; }
+  /* The desktop mockup's list header has no icon buttons at all — they're
+     a mobile-only affordance (the theme toggle still needs to live
+     somewhere; it's kept for mobile only, matching the reference exactly
+     rather than inventing a desktop equivalent the mockup never showed). */
+  .header-actions { display: none; }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,8 +185,6 @@ body[data-route="detail"] #detail-pane { display: block; }
     flex: 1;
     min-width: 0;
   }
-
-  .back-link { display: none; }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -326,6 +329,15 @@ body[data-route="detail"] .activity-row.active,
   border-bottom: 1px solid var(--divider-hair);
 }
 
+@media (min-width: 900px) {
+  /* Must come after the base .back-link rule above — same specificity, so
+     source order decides, and an earlier copy of this same override (once
+     living up in the #layout media query) was silently losing to this
+     later, unconditional declaration. Desktop shows both panes at once;
+     there's nothing to "go back" to. */
+  .back-link { display: none; }
+}
+
 #detail-top {
   display: flex;
   align-items: flex-start;
@@ -423,8 +435,25 @@ body[data-route="detail"] .activity-row.active,
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--muted-2);
-  margin: 0 0 12px;
 }
+
+.section-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+.section-caption {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Sections without a caption (dynamics, exercise table) still need the
+   title's bottom margin that .section-title-row otherwise provides. */
+.section > .section-title { margin: 0 0 12px; }
 
 .hr-row {
   display: grid;
@@ -450,10 +479,14 @@ body[data-route="detail"] .activity-row.active,
   .hr-row { grid-template-columns: 24px 1fr 48px; gap: 12px; }
 }
 .hr-bar-track {
+  display: block;
   height: 18px;
   background: var(--divider-hair);
 }
-.hr-bar-fill { height: 100%; }
+/* Must be display:block — as a bare inline <span>, `width` (set inline per
+   row) is simply ignored by the box model, which is why every zone bar
+   rendered as a flat, uncolored track with no visible fill at all. */
+.hr-bar-fill { display: block; height: 100%; }
 .hr-time {
   font-size: 11.5px;
   text-align: right;
@@ -503,6 +536,9 @@ body[data-route="detail"] .activity-row.active,
   .te-item:last-child { width: 130px; padding: 13px 0 13px 16px; }
 }
 
+/* Mobile: 2-column grid (per the phone mockup). Desktop switches to a
+   single-column list (per the desktop mockup) — see the ≥900px override
+   below; nothing else about the item markup changes between the two. */
 .dynamics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -520,6 +556,17 @@ body[data-route="detail"] .activity-row.active,
   padding-right: 12px;
 }
 .dyn-item:nth-child(even) { padding-left: 12px; }
+
+@media (min-width: 900px) {
+  .dynamics-grid { grid-template-columns: 1fr; }
+  .dyn-item {
+    padding: 10px 0;
+    border-right: none !important;
+  }
+  .dyn-item:nth-child(even) { padding-left: 0; }
+  .dyn-label { font-size: 12.5px; }
+}
+
 .dyn-label { font-size: 12px; color: var(--muted-2); }
 .dyn-value {
   font-weight: 800;
