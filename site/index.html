@@ -10,19 +10,22 @@
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header id="app-header">
-    <a class="brand" href="#/">
-      <span class="brand-mark">LEDGER</span>
-      <span class="brand-sub">garmin-parse activities</span>
-    </a>
-    <div class="header-actions">
-      <a class="repo-link" href="https://github.com/arnabsen1729/garmin-parse" target="_blank" rel="noopener">Repo ↗</a>
-      <button id="theme-toggle" type="button" aria-label="Toggle theme">◐</button>
-    </div>
-  </header>
-
   <div id="layout">
     <section id="list-pane" aria-label="Activity list">
+      <div id="list-header">
+        <div>
+          <div class="list-kicker">garmin-parse</div>
+          <h1 class="list-title">Activities</h1>
+        </div>
+        <div class="header-actions">
+          <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle theme">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+          </button>
+          <a class="icon-btn" href="https://github.com/arnabsen1729/garmin-parse" target="_blank" rel="noopener" aria-label="View repository on GitHub">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
+          </a>
+        </div>
+      </div>
       <div id="list-status" class="muted">Loading activities…</div>
       <div id="list-groups"></div>
     </section>
@@ -31,7 +34,10 @@
       <div id="detail-empty" class="muted">Select an activity to view its details.</div>
       <div id="detail-content" hidden>
         <a href="#/" class="back-link">← Back to list</a>
-        <div id="detail-hero"></div>
+        <div id="detail-top">
+          <div id="detail-hero"></div>
+          <div id="detail-actions-top" class="action-buttons"></div>
+        </div>
         <div id="detail-stats" class="stat-grid"></div>
         <div id="detail-hr"></div>
         <div id="detail-te"></div>
@@ -43,10 +49,7 @@
     </section>
   </div>
 
-  <div id="action-bar" hidden>
-    <button id="copy-btn" type="button">Copy raw Markdown</button>
-    <a id="source-link" href="#" target="_blank" rel="noopener" title="View source on GitHub">Source ↗</a>
-  </div>
+  <div id="action-bar" class="action-buttons" hidden></div>
 
   <div id="toast" role="status" hidden></div>
 

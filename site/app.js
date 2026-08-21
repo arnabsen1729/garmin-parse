@@ -178,6 +178,19 @@ function paceFromSpeedKmh(speedKmh) {
   return `${mm}:${String(ss).padStart(2, "0")} /km`;
 }
 
+// Splits a rendered field value like "5.06 km", "16.59 km/h", "5:51 /km", or
+// "366 kcal" into a leading number/duration token and a trailing unit, so the
+// stat grid can show a big bold number with a small muted unit beneath it —
+// matching the Ledger mockup's stat cells. Values with no unit ("29:35")
+// simply return an empty unit.
+function splitValueUnit(value) {
+  if (value == null) return { num: "", unit: "" };
+  const str = String(value).trim();
+  const m = str.match(/^([\d:.,]+)\s*(.*)$/);
+  if (!m) return { num: str, unit: "" };
+  return { num: m[1], unit: m[2] };
+}
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
@@ -322,7 +335,8 @@ function renderRow(record) {
   const sportLabel = record.parsed.generic["Activity Type"] || record.sportKey.replace(/_/g, " ");
   const { primary, secondary } = primarySecondaryLines(record);
   const when = parseActivityDate(record);
-  const whenStr = when.toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
+  const weekdayStr = when.toLocaleString(undefined, { weekday: "short" });
+  const timeStr = when.toLocaleString(undefined, { hour: "numeric", minute: "2-digit" });
 
   btn.innerHTML = `
     <span class="icon-tile">${iconSvg(iconFor(record.sportKey))}</span>
@@ -331,7 +345,7 @@ function renderRow(record) {
       <span class="row-primary">${escapeHtml(primary)}</span>
       <span class="row-secondary">${escapeHtml(secondary)}</span>
     </span>
-    <span class="row-when">${escapeHtml(whenStr)}</span>
+    <span class="row-when">${escapeHtml(weekdayStr)}<span class="row-when-time"><br>${escapeHtml(timeStr)}</span></span>
   `;
   return btn;
 }
@@ -434,7 +448,9 @@ function hrZoneColorVar(zoneNumber) {
 
 function statCell(label, value) {
   if (value == null || value === "") return "";
-  return `<div class="stat-cell"><div class="stat-label">${escapeHtml(label)}</div><div class="stat-value">${escapeHtml(value)}</div></div>`;
+  const { num, unit } = splitValueUnit(value);
+  const unitHtml = unit ? `<span class="stat-unit"> ${escapeHtml(unit)}</span>` : "";
+  return `<div class="stat-cell"><div class="stat-label">${escapeHtml(label)}</div><div class="stat-value">${escapeHtml(num)}${unitHtml}</div></div>`;
 }
 
 function buildStatGrid(g, category) {
@@ -461,14 +477,21 @@ function buildStatGrid(g, category) {
   return cells.join("");
 }
 
-function buildHrZones(hrZones, totalDurationSeconds) {
+function buildHrZones(hrZones) {
   if (!hrZones || hrZones.length === 0) return "";
+  const secsByZone = hrZones.map(({ time }) => durationToSeconds(time) || 0);
+  const peakSecs = Math.max(...secsByZone);
+  // Bars are scaled relative to the *busiest* zone, not the activity's total
+  // duration — a zone that's 20% of total time should still read as a mostly
+  // full bar if it's the dominant one, matching the mockup's visual weight
+  // (its Z4 bar reads ~100% full at 22:16 of a 29:35 run).
   const rows = hrZones
-    .map(({ zone, time }) => {
-      const secs = durationToSeconds(time) || 0;
-      const pct = totalDurationSeconds > 0 ? Math.min(100, (secs / totalDurationSeconds) * 100) : 0;
+    .map(({ zone, time }, i) => {
+      const secs = secsByZone[i];
+      const pct = peakSecs > 0 ? Math.min(100, (secs / peakSecs) * 100) : 0;
+      const isPeak = peakSecs > 0 && secs === peakSecs;
       return `
-        <div class="hr-row">
+        <div class="hr-row${isPeak ? " hr-row-peak" : ""}">
           <span class="hr-zone-num">Z${escapeHtml(zone)}</span>
           <span class="hr-bar-track"><span class="hr-bar-fill" style="width:${pct}%;background:${hrZoneColorVar(zone)}"></span></span>
           <span class="hr-time">${escapeHtml(time)}</span>
@@ -483,14 +506,26 @@ function buildTrainingEffect(g) {
   const anaerobic = g["Anaerobic Training Effect"];
   const label = g["Training Effect"];
   if (!aerobic && !anaerobic) return "";
-  return `
-    <div class="section">
-      <div class="section-title">Training Effect</div>
-      <div class="te-row">
-        ${aerobic ? `<div class="te-item"><div class="te-value">${escapeHtml(aerobic)}</div><div class="te-label">Aerobic${label ? " · " + escapeHtml(label) : ""}</div></div>` : ""}
-        ${anaerobic ? `<div class="te-item"><div class="te-value">${escapeHtml(anaerobic)}</div><div class="te-label">Anaerobic</div></div>` : ""}
-      </div>
-    </div>`;
+  // Matches the mockup: the primary cell's own label IS "Training effect"
+  // (no separate section heading above it), paired with the sport's
+  // training-effect label (e.g. "Lactate threshold") in accent color next
+  // to the value. The secondary cell just shows the anaerobic number.
+  const primaryCell = aerobic
+    ? `<div class="te-item">
+         <div class="stat-label">Training Effect</div>
+         <div class="te-value-row">
+           <span class="te-value">${escapeHtml(aerobic)}</span>
+           ${label ? `<span class="te-label te-label-accent">${escapeHtml(label)}</span>` : ""}
+         </div>
+       </div>`
+    : "";
+  const secondaryCell = anaerobic
+    ? `<div class="te-item">
+         <div class="stat-label">Anaerobic</div>
+         <div class="te-value">${escapeHtml(anaerobic)}</div>
+       </div>`
+    : "";
+  return `<div class="section"><div class="te-row">${primaryCell}${secondaryCell}</div></div>`;
 }
 
 const DYNAMICS_LABELS = {
@@ -542,7 +577,7 @@ function buildDynamics(g, typeFields, typeTitle, category, exerciseRows) {
   const grid = items
     .map(
       ([label, value]) =>
-        `<div class="dyn-item"><div class="stat-label">${escapeHtml(label)}</div><div class="dyn-value">${escapeHtml(value)}</div></div>`
+        `<div class="dyn-item"><span class="dyn-label">${escapeHtml(label)}</span><span class="dyn-value">${escapeHtml(value)}</span></div>`
     )
     .join("");
 
@@ -567,11 +602,13 @@ async function renderDetail(path) {
   const loadingEl = document.getElementById("detail-loading");
   const errorEl = document.getElementById("detail-error");
   const actionBar = document.getElementById("action-bar");
+  const actionsTop = document.getElementById("detail-actions-top");
 
   emptyEl.hidden = true;
   contentEl.hidden = true;
   errorEl.hidden = true;
   actionBar.hidden = true;
+  actionsTop.hidden = true;
   loadingEl.hidden = false;
 
   try {
@@ -585,7 +622,6 @@ async function renderDetail(path) {
     const { generic: g, typeFields, typeTitle, hrZones, exerciseRows } = record.parsed;
     const category = activityCategory(record.sportKey || "");
     const sportLabel = g["Activity Type"] || (entry.sportKey || "").replace(/_/g, " ");
-    const totalDurationSeconds = durationToSeconds(g["Duration"]) || 0;
 
     document.getElementById("detail-hero").innerHTML = `
       <span class="icon-tile" style="--row-accent: var(${sportColorVar(entry.sportKey || "")})">${iconSvg(iconFor(entry.sportKey || ""))}</span>
@@ -596,7 +632,7 @@ async function renderDetail(path) {
     `;
 
     document.getElementById("detail-stats").innerHTML = buildStatGrid(g, category);
-    document.getElementById("detail-hr").innerHTML = buildHrZones(hrZones, totalDurationSeconds);
+    document.getElementById("detail-hr").innerHTML = buildHrZones(hrZones);
     document.getElementById("detail-te").innerHTML = buildTrainingEffect(g);
     document.getElementById("detail-dynamics").innerHTML = buildDynamics(
       g,
@@ -606,12 +642,19 @@ async function renderDetail(path) {
       exerciseRows
     );
 
-    document.getElementById("source-link").href = githubUrl(path);
+    actionBar.innerHTML = actionButtonsHtml();
+    actionsTop.innerHTML = actionButtonsHtml();
+    document.querySelectorAll(".source-link").forEach((a) => {
+      a.href = githubUrl(path);
+    });
+    document.querySelectorAll(".copy-btn").forEach((b) => {
+      b.disabled = false;
+    });
 
     loadingEl.hidden = true;
     contentEl.hidden = false;
     actionBar.hidden = false;
-    document.getElementById("copy-btn").disabled = false;
+    actionsTop.hidden = false;
 
     highlightActiveRow();
   } catch (err) {
@@ -625,9 +668,12 @@ async function renderDetail(path) {
 /* Copy + toast                                                        */
 /* ------------------------------------------------------------------ */
 
+const CHECK_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>';
+
 function showToast(message) {
   const toast = document.getElementById("toast");
-  toast.textContent = message;
+  toast.innerHTML = `<span class="toast-icon">${CHECK_ICON}</span><span>${escapeHtml(message)}</span>`;
   toast.hidden = false;
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => {
@@ -635,8 +681,26 @@ function showToast(message) {
   }, 1800);
 }
 
-document.getElementById("copy-btn").addEventListener("click", async () => {
-  if (!currentRawText) return;
+// The action buttons (Copy raw Markdown + source link) are rendered twice —
+// once into the mobile sticky bottom bar (#action-bar) and once inline at
+// the top of the desktop detail pane (#detail-actions-top), per the Ledger
+// mockup. CSS decides which is visible per breakpoint; both share this
+// markup and a single delegated click handler below.
+const COPY_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>';
+const EXTERNAL_LINK_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>';
+
+function actionButtonsHtml() {
+  return `
+    <button class="copy-btn" type="button" disabled>${COPY_ICON}Copy raw Markdown</button>
+    <a class="source-link" href="#" target="_blank" rel="noopener" title="View source on GitHub" aria-label="View source on GitHub">${EXTERNAL_LINK_ICON}</a>
+  `;
+}
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".copy-btn");
+  if (!btn || btn.disabled || !currentRawText) return;
   try {
     await navigator.clipboard.writeText(currentRawText);
     const bytes = new TextEncoder().encode(currentRawText).length;
@@ -693,6 +757,7 @@ function route() {
   } else {
     document.body.dataset.route = "list";
     document.getElementById("action-bar").hidden = true;
+    document.getElementById("detail-actions-top").hidden = true;
     renderList();
   }
 }
