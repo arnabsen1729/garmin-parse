@@ -23,6 +23,12 @@ Wire it together into something runnable.
 - `typer` CLI, `uv run garmin-parse sync`
 - README with setup + usage
 
+## Phase 5 — On-demand cloud automation
+Let a sync be triggered from a phone instead of needing a terminal on this Mac.
+- Harden `auth.py` for non-interactive environments (clean error instead of hanging/crashing when no TTY is available and cached tokens are invalid)
+- GitHub Actions workflow (`workflow_dispatch` only, no cron) that runs `sync`, commits/pushes new activity files, and self-refreshes its cached-session secret
+- README section documenting the one-time setup (fine-grained PAT, seeding secrets) and how to trigger a run from the GitHub mobile app
+
 ## Out of scope (deferred)
-- Visualization / dashboard tool — revisit once there's a real need, likely requires adding structured (JSON) output alongside Markdown.
-- Scheduled/automatic sync (cron/launchd) — manual CLI trigger only for now.
+- Further visualization/dashboard work beyond the existing `site/index.html` static viewer.
+- Scheduled/cron-based sync — on-demand (`workflow_dispatch`) only for now.
