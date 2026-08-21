@@ -13,27 +13,32 @@ const rawUrl = (path) => `https://raw.githubusercontent.com/${OWNER}/${REPO}/${B
 const githubUrl = (path) => `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/${path}`;
 
 /* ------------------------------------------------------------------ */
-/* Icons (simplified glyphs — see final report re: mockup access)      */
+/* Icons — exact Lucide glyph markup from the Ledger mockup            */
+/* (Garmin Viewer Direction.dc.html, "Sport palette" legend), one per   */
+/* sport key rather than a collapsed category bucket.                  */
 /* ------------------------------------------------------------------ */
 
 const ICONS = {
   running:
-    '<path d="M4 21v-4a3 3 0 0 1 3-3h1.5a2 2 0 0 1 2 2v1.2A2.8 2.8 0 0 1 7.7 20H4Z"/><path d="M13.5 13v-4a3 3 0 0 1 3-3H18a2 2 0 0 1 2 2v1.2a2.8 2.8 0 0 1-2.8 2.8H13.5Z"/><circle cx="6.5" cy="9.5" r="1"/><circle cx="16" cy="3.5" r="1"/>',
-  cycling:
-    '<circle cx="6" cy="17" r="3.5"/><circle cx="18" cy="17" r="3.5"/><path d="M6 17 10 8h4l3.5 5.5"/><path d="M9.5 8 8 5h3"/><path d="M13 8h5"/>',
-  swimming:
-    '<path d="M2 8c1 1 2 1.5 3.5 1.5S8 8 9.5 8 11 9.5 12.5 9.5 14 8 15.5 8 17 9.5 18.5 9.5 20 8 22 8"/><path d="M2 14c1 1 2 1.5 3.5 1.5S8 14 9.5 14 11 15.5 12.5 15.5 14 14 15.5 14 17 15.5 18.5 15.5 20 14 22 14"/><path d="M2 20c1 1 2 1.5 3.5 1.5S8 20 9.5 20 11 21.5 12.5 21.5 14 20 15.5 20 17 21.5 18.5 21.5 20 20 22 20"/>',
-  strength:
-    '<rect x="2" y="9" width="3" height="6" rx="1"/><rect x="19" y="9" width="3" height="6" rx="1"/><rect x="5.5" y="7" width="2" height="10" rx="0.5"/><rect x="16.5" y="7" width="2" height="10" rx="0.5"/><line x1="7.5" y1="12" x2="16.5" y2="12"/>',
-  fallback: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+    '<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"></path><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"></path><path d="M16 17h4"></path><path d="M4 13h4"></path>',
+  track_running:
+    '<circle cx="6" cy="19" r="3"></circle><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path><circle cx="18" cy="5" r="3"></circle>',
+  treadmill_running: '<path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path>',
+  road_biking:
+    '<circle cx="18.5" cy="17.5" r="3.5"></circle><circle cx="5.5" cy="17.5" r="3.5"></circle><circle cx="15" cy="5" r="1"></circle><path d="M12 17.5V14l-3-3 4-3 2 3h2"></path>',
+  indoor_cycling:
+    '<path d="M15.6 2.7a10 10 0 1 0 5.7 5.7"></path><circle cx="12" cy="12" r="2"></circle><path d="M13.4 10.6 19 5"></path>',
+  lap_swimming:
+    '<path d="M19 5a2 2 0 0 0-2 2v11"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M7 13h10"></path><path d="M7 9h10"></path><path d="M9 5a2 2 0 0 0-2 2v11"></path>',
+  strength_training:
+    '<path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"></path><path d="m2.5 21.5 1.4-1.4"></path><path d="m20.1 3.9 1.4-1.4"></path><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"></path><path d="m9.6 14.4 4.8-4.8"></path>',
+  badminton: '<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>',
+  fallback:
+    '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"></path>',
 };
 
-function iconFor(sportKey, category) {
-  if (sportKey.includes("running")) return ICONS.running;
-  if (sportKey.includes("cycling") || sportKey.includes("biking")) return ICONS.cycling;
-  if (sportKey.includes("swimming")) return ICONS.swimming;
-  if (category === "strength") return ICONS.strength;
-  return ICONS.fallback;
+function iconFor(sportKey) {
+  return ICONS[sportKey] || ICONS.fallback;
 }
 
 function iconSvg(pathMarkup) {
@@ -320,7 +325,7 @@ function renderRow(record) {
   const whenStr = when.toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
 
   btn.innerHTML = `
-    <span class="icon-tile">${iconSvg(iconFor(record.sportKey, category))}</span>
+    <span class="icon-tile">${iconSvg(iconFor(record.sportKey))}</span>
     <span class="row-main">
       <span class="row-sport">${escapeHtml(sportLabel)}</span>
       <span class="row-primary">${escapeHtml(primary)}</span>
@@ -583,7 +588,7 @@ async function renderDetail(path) {
     const totalDurationSeconds = durationToSeconds(g["Duration"]) || 0;
 
     document.getElementById("detail-hero").innerHTML = `
-      <span class="icon-tile" style="--row-accent: var(${sportColorVar(entry.sportKey || "")})">${iconSvg(iconFor(entry.sportKey || "", category))}</span>
+      <span class="icon-tile" style="--row-accent: var(${sportColorVar(entry.sportKey || "")})">${iconSvg(iconFor(entry.sportKey || ""))}</span>
       <span>
         <div class="hero-sport" style="color: var(${sportColorVar(entry.sportKey || "")})">${escapeHtml(sportLabel)}</div>
         <div class="hero-date">${escapeHtml(g["Date"] || entry.date || "")}</div>
