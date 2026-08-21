@@ -64,6 +64,71 @@ working directory. Use `--activities-dir` to point elsewhere:
 uv run garmin-parse sync --activities-dir /path/to/activities
 ```
 
+## Running on-demand via GitHub Actions
+
+`.github/workflows/sync.yml` lets you trigger a sync from your phone (or any
+browser) without a terminal, using a manually-triggered GitHub Actions
+workflow. This needs a one-time setup by the repo owner.
+
+### One-time setup
+
+1. Run `uv run garmin-parse sync` locally at least once so an authenticated
+   session is cached at `~/.garminconnect/garmin_tokens.json` (see
+   [First run (authentication)](#first-run-authentication) above).
+
+2. Seed the `GARMIN_TOKENSTORE` secret from that cached session:
+
+   ```sh
+   gh secret set GARMIN_TOKENSTORE --repo <owner>/<repo> < ~/.garminconnect/garmin_tokens.json
+   ```
+
+3. Create a fine-grained GitHub Personal Access Token scoped to **only this
+   repository**. There's no CLI/API way to create one, so this has to be
+   done in GitHub's web UI:
+
+   **Settings → Developer settings → Personal access tokens → Fine-grained
+   tokens → Generate new token.** Set "Repository access" to this repository
+   only, and under "Repository permissions" set **Secrets** to
+   **"Read and write"**. Leave every other permission (including Contents)
+   unset.
+
+4. Store that token as the `SECRETS_PAT` secret:
+
+   ```sh
+   gh secret set SECRETS_PAT --repo <owner>/<repo>
+   ```
+
+   Paste the token when prompted by the terminal, not as a chat message to
+   an AI assistant or anywhere else it could get logged or committed.
+
+### Triggering a sync
+
+Once the secrets are set up, no terminal is needed: open the repo in the
+GitHub mobile app or web UI, go to the **Actions** tab, select the
+**"Sync Garmin activities"** workflow, and click **"Run workflow"**.
+
+### What happens automatically
+
+The workflow restores the cached Garmin session from `GARMIN_TOKENSTORE`,
+runs `garmin-parse sync`, and pushes any new activity files straight to the
+repo. If Garmin refreshes the session token during the run, the workflow
+also re-seeds the `GARMIN_TOKENSTORE` secret with the updated token — so
+this should keep working indefinitely without repeating the local setup.
+
+The one exception is if Garmin invalidates the session entirely (e.g. it
+forces a fresh login or an MFA challenge). When that happens the workflow
+run fails with a clear error. The fix is the same as the initial setup: run
+`garmin-parse sync` locally once more to re-authenticate, then re-seed the
+`GARMIN_TOKENSTORE` secret as in step 2 above.
+
+### Trade-off
+
+This setup stores a live Garmin session as a GitHub secret so you can
+trigger syncs from your phone. That's a real trade-off, not a free lunch:
+anyone with write access to repo secrets (or the `SECRETS_PAT` token) can
+read out `GARMIN_TOKENSTORE` and use it to act as your Garmin session.
+Only set this up if you're comfortable with that.
+
 ## What's in each file
 
 Each Markdown file contains everything shown on Garmin's activity stats

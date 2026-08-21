@@ -1,9 +1,10 @@
 ---
 id: TASK-14
 title: Document GitHub Actions setup in README
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-21 13:51'
+updated_date: '2026-08-21 14:04'
 labels: []
 milestone: m-4
 dependencies:
@@ -23,3 +24,9 @@ Add a 'Running on-demand via GitHub Actions' section to README.md: how to create
 - [ ] #1 README explains the PAT scope precisely (repo-limited, Secrets permission only)
 - [ ] #2 README explains how to trigger a run from the GitHub mobile app
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Added 'Running on-demand via GitHub Actions' section to README covering one-time secret/PAT setup, triggering via Actions tab, automatic token refresh behavior, and the security trade-off of storing a live Garmin session as a repo secret.
+<!-- SECTION:NOTES:END -->
