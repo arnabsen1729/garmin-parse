@@ -2,8 +2,11 @@
 
 Syncs every Garmin Connect activity to a local Markdown file — one file per
 activity — so you can paste the stats straight into any LLM chat for
-analysis. There's no visualization/dashboard tooling here; that's explicitly
-out of scope for now (see [`roadmap.md`](roadmap.md)).
+analysis. A minimal static [web viewer](#web-viewer) is included for
+browsing activities from a browser, and a sync can be triggered
+[on demand from your phone](#running-on-demand-via-github-actions) via
+GitHub Actions — see [`roadmap.md`](roadmap.md) for what's still deferred
+(a richer, mobile-friendly redesign of the viewer is in progress).
 
 ## Prerequisites
 

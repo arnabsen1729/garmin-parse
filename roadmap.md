@@ -29,6 +29,11 @@ Let a sync be triggered from a phone instead of needing a terminal on this Mac.
 - GitHub Actions workflow (`workflow_dispatch` only, no cron) that runs `sync`, commits/pushes new activity files, and self-refreshes its cached-session secret
 - README section documenting the one-time setup (fine-grained PAT, seeding secrets) and how to trigger a run from the GitHub mobile app
 
+## Phase 6 — Mobile-friendly viewer redesign
+Replace the bare `site/index.html` viewer with a real mobile-first design.
+- Initial visual direction drafted via Claude Design (not yet implemented)
+- Must keep: chronological activity browsing, per-activity stat view, one-tap "copy raw data" for pasting into an LLM, GitHub source link
+- Constraint: stays a static page, no backend, no build step
+
 ## Out of scope (deferred)
-- Further visualization/dashboard work beyond the existing `site/index.html` static viewer.
 - Scheduled/cron-based sync — on-demand (`workflow_dispatch`) only for now.
