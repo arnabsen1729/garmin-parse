@@ -255,7 +255,8 @@ def _render_running_section(activity: dict[str, Any]) -> list[str]:
 
     stride_length = _lookup(activity, "avgStrideLength")
     if stride_length is not None:
-        lines.append(_line("Stride Length", f"{stride_length:.2f}", " m"))
+        # Garmin reports avgStrideLength in centimeters.
+        lines.append(_line("Stride Length", f"{stride_length / 100:.2f}", " m"))
 
     ground_contact_time = _lookup(activity, "avgGroundContactTime")
     if ground_contact_time is not None:

@@ -80,7 +80,7 @@ def test_running_specific_fields_included_when_present():
         detail={
             "summaryDTO": {
                 "avgVerticalOscillation": 8.5,
-                "avgStrideLength": 1.15,
+                "avgStrideLength": 115.0,
                 "avgGroundContactTime": 240.0,
             }
         },
@@ -94,7 +94,7 @@ def test_running_specific_fields_included_when_present():
     assert "Vertical Oscillation" in markdown
     assert "8.5" in markdown
     assert "Stride Length" in markdown
-    assert "1.15" in markdown
+    assert "1.15 m" in markdown
     assert "Ground Contact Time" in markdown
     assert "240" in markdown
 
