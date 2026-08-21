@@ -299,10 +299,15 @@ function parseActivityDate(record) {
 // mockup. The raw "Date" field ("2026-08-20 09:21") is only ever used to
 // derive this, never shown directly.
 function formatHeroDate(record) {
+  // Built manually rather than via toLocaleString's combined formatting,
+  // which (in en-US) inserts a comma and 12-hour AM/PM — the mockup's
+  // format is "Thu 20 Aug 2026 · 09:21": no comma, 24-hour time.
   const when = parseActivityDate(record);
-  const datePart = when.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-  const timePart = when.toLocaleString(undefined, { hour: "numeric", minute: "2-digit" });
-  return `${datePart} · ${timePart}`;
+  const weekday = when.toLocaleString(undefined, { weekday: "short" });
+  const month = when.toLocaleString(undefined, { month: "short" });
+  const hh = String(when.getHours()).padStart(2, "0");
+  const mm = String(when.getMinutes()).padStart(2, "0");
+  return `${weekday} ${when.getDate()} ${month} ${when.getFullYear()} · ${hh}:${mm}`;
 }
 
 function primarySecondaryLines(record) {
@@ -335,8 +340,13 @@ function primarySecondaryLines(record) {
     return { primary, secondary };
   }
 
-  const primary = [duration, avgHr ? `avg HR ${avgHr}` : null].filter(Boolean).join(" · ");
-  const secondary = calories ? `${calories}` : "";
+  // No distance, not strength (e.g. indoor cycling, badminton): the mockup
+  // keeps the primary line to just the duration — avg HR/calories are
+  // secondary-line detail, not bold headline text.
+  const primary = duration || "";
+  const secondary = [avgHr ? `avg HR ${avgHr}` : null, calories ? `${calories}` : null]
+    .filter(Boolean)
+    .join(" · ");
   return { primary, secondary };
 }
 
@@ -498,9 +508,13 @@ function buildStatGrid(g, category) {
 
 function buildHrZones(hrZones, avgHr, maxHr) {
   if (!hrZones || hrZones.length === 0) return "";
+  // "avg 170 · max 188 bpm" — the unit appears once, on the trailing value,
+  // not repeated on both ("avg 170 bpm · max 188 bpm").
+  const avgNum = splitValueUnit(avgHr).num;
+  const maxSplit = splitValueUnit(maxHr);
   const captionParts = [];
-  if (avgHr) captionParts.push(`avg ${avgHr}`);
-  if (maxHr) captionParts.push(`max ${maxHr}`);
+  if (avgNum) captionParts.push(`avg ${avgNum}`);
+  if (maxSplit.num) captionParts.push(`max ${maxSplit.num}${maxSplit.unit ? " " + maxSplit.unit : ""}`);
   const caption = captionParts.length
     ? `<span class="section-caption">${escapeHtml(captionParts.join(" · "))}</span>`
     : "";
@@ -586,10 +600,17 @@ function buildDynamics(g, typeFields, typeTitle, category, exerciseRows) {
   const labelMap = DYNAMICS_LABELS[category];
   const items = [];
 
+  if (labelMap) {
+    for (const [key, label] of Object.entries(labelMap)) {
+      if (typeFields[key] != null) items.push([label, typeFields[key]]);
+    }
+  }
+
   if (category === "running") {
     // Elevation lives in the generic section but reads naturally alongside
     // running dynamics per the design's grouping — as one combined
-    // "X / Y m" row, not two separate items, per the mockup.
+    // "X / Y m" row (not two separate items) at the *end* of the list,
+    // per the mockup's ordering.
     const gain = g["Elevation Gain"];
     const loss = g["Elevation Loss"];
     if (gain || loss) {
@@ -598,12 +619,6 @@ function buildDynamics(g, typeFields, typeTitle, category, exerciseRows) {
       const unit = gainSplit.unit || lossSplit.unit || "";
       const value = `${gainSplit.num || "–"} / ${lossSplit.num || "–"}${unit ? " " + unit : ""}`;
       items.push(["Elevation Gain / Loss", value]);
-    }
-  }
-
-  if (labelMap) {
-    for (const [key, label] of Object.entries(labelMap)) {
-      if (typeFields[key] != null) items.push([label, typeFields[key]]);
     }
   }
 
