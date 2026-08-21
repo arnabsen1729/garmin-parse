@@ -1,9 +1,10 @@
 ---
 id: TASK-12
 title: Harden Garmin auth for non-interactive CI environments
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-21 13:51'
+updated_date: '2026-08-21 13:54'
 labels: []
 milestone: m-4
 dependencies: []
@@ -23,3 +24,9 @@ In auth.py, before falling through to interactive input()/getpass prompts, check
 - [ ] #2 Existing interactive behavior (TTY present) is unchanged
 - [ ] #3 New unit test in tests/test_auth.py covers the non-interactive case; full suite still passes
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Added sys.stdin.isatty() check in get_client(): when cached-token login fails and stdin is not a TTY, raises GarminAuthError with an actionable message instead of falling through to input()/getpass prompts (which would raise EOFError in CI). Existing TTY-present prompting behavior unchanged. Added test_get_client_raises_clear_error_when_noninteractive_and_no_cached_tokens to tests/test_auth.py; patched isatty=True in existing interactive-path tests. Full suite (31 tests) passes.
+<!-- SECTION:NOTES:END -->

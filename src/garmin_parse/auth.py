@@ -9,11 +9,15 @@ Wraps ``garminconnect.Garmin`` login so that:
   are reused, so the user is not prompted again until those tokens expire.
 * Credentials are never written to disk and never logged. Only the
   library's own token cache file at ``tokenstore`` persists anything.
+* When run non-interactively (no TTY on stdin, e.g. in CI), a failed
+  cached-token login raises ``GarminAuthError`` immediately instead of
+  attempting to prompt for credentials.
 """
 
 from __future__ import annotations
 
 import getpass
+import sys
 
 from garminconnect import Garmin
 from garminconnect.exceptions import GarminConnectAuthenticationError
@@ -50,9 +54,15 @@ def get_client(tokenstore: str = DEFAULT_TOKENSTORE) -> Garmin:
     the resulting session to ``tokenstore`` (handled internally by
     ``Garmin.login``) so future calls skip the prompts.
 
+    If cached-token login fails and stdin is not an interactive terminal
+    (e.g. running in CI), raises ``GarminAuthError`` immediately rather
+    than attempting to prompt for credentials.
+
     Raises:
         GarminAuthError: if login ultimately fails (e.g. wrong
-            credentials, MFA code rejected, network/API error).
+            credentials, MFA code rejected, network/API error), or if
+            cached tokens are invalid/missing and no interactive
+            terminal is available to prompt for credentials.
     """
     # First, try to resume purely from cached tokens: no credentials are
     # supplied, so this only succeeds if `tokenstore` already holds a
@@ -68,6 +78,14 @@ def get_client(tokenstore: str = DEFAULT_TOKENSTORE) -> Garmin:
         pass
     except Exception as exc:  # noqa: BLE001 - re-raised with context below
         raise GarminAuthError(f"Garmin login failed: {exc}") from exc
+
+    if not sys.stdin.isatty():
+        raise GarminAuthError(
+            "Cached Garmin session is invalid or expired, and no "
+            "interactive terminal is available to log in. Run "
+            "`garmin-parse sync` locally to refresh it, then update the "
+            "`GARMIN_TOKENSTORE` secret."
+        )
 
     email, password = _prompt_credentials()
     client = Garmin(email, password, prompt_mfa=_prompt_mfa)

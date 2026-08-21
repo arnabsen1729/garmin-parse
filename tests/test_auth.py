@@ -54,6 +54,7 @@ def test_get_client_prompts_for_credentials_when_no_cached_tokens():
 
     with (
         patch("garmin_parse.auth.Garmin", side_effect=fake_garmin) as garmin_cls,
+        patch("sys.stdin.isatty", return_value=True),
         patch("builtins.input", return_value="user@example.com") as mock_input,
         patch("getpass.getpass", return_value="super-secret") as mock_getpass,
     ):
@@ -71,6 +72,30 @@ def test_get_client_prompts_for_credentials_when_no_cached_tokens():
     mock_input.assert_called_once_with("Garmin Connect email: ")
     mock_getpass.assert_called_once_with("Garmin Connect password: ")
     fresh_client.login.assert_called_once_with(tokenstore="/tmp/fake-tokenstore")
+
+
+def test_get_client_raises_clear_error_when_noninteractive_and_no_cached_tokens():
+    """If cached tokens are invalid and stdin is not a TTY, fail fast.
+
+    No prompting should ever be attempted (input()/getpass.getpass must not
+    be called) since there is no terminal to read from in CI.
+    """
+    cache_miss_client = MagicMock()
+    cache_miss_client.login.side_effect = GarminConnectAuthenticationError(
+        "Username and password are required"
+    )
+
+    with (
+        patch("garmin_parse.auth.Garmin", return_value=cache_miss_client),
+        patch("sys.stdin.isatty", return_value=False),
+        patch("builtins.input") as mock_input,
+        patch("getpass.getpass") as mock_getpass,
+    ):
+        with pytest.raises(auth.GarminAuthError):
+            auth.get_client(tokenstore="/tmp/fake-tokenstore")
+
+    mock_input.assert_not_called()
+    mock_getpass.assert_not_called()
 
 
 def test_get_client_raises_clear_error_on_final_failure():
@@ -92,6 +117,7 @@ def test_get_client_raises_clear_error_on_final_failure():
 
     with (
         patch("garmin_parse.auth.Garmin", side_effect=fake_garmin),
+        patch("sys.stdin.isatty", return_value=True),
         patch("builtins.input", return_value="user@example.com"),
         patch("getpass.getpass", return_value="wrong-password"),
     ):
