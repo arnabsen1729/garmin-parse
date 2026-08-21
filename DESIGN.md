@@ -1,12 +1,42 @@
 # Design: "Ledger" — mobile-friendly activity viewer
 
-Source of truth: [Claude Design project](https://claude.ai/design/p/c289f723-3923-462a-8727-2f10ce5b59ee?file=Garmin+Viewer+Direction.dc.html)
-(`Garmin Viewer Direction.dc.html`, direction "01 · Ledger"). This document
-summarizes the direction for implementation; the Claude Design file itself
-is the pixel-accurate reference (exact SVG icon markup, spacing, mockup
-states) — read it directly via the `DesignSync` tool
-(`get_file`, projectId `c289f723-3923-462a-8727-2f10ce5b59ee`) rather than
-re-deriving icons/spacing from this doc.
+**Canonical source of truth: `mockups/garmin-activity-viewer-direction.pptx`**
+— an 8-slide deck with exact prose annotations per screen (row height,
+chrome targets, zone-bar scaling rule, copy-confirmation behavior, dark-mode
+color rule, etc.). When this doc and the pptx disagree, the pptx wins.
+Render its slides with Keynote (`open` the file, then AppleScript
+`export ... as slide images`) to inspect them as images.
+
+The [Claude Design project](https://claude.ai/design/p/c289f723-3923-462a-8727-2f10ce5b59ee?file=Garmin+Viewer+Direction.dc.html)
+(`Garmin Viewer Direction.dc.html`) is the earlier canvas version of the
+same direction — still useful for exact SVG icon markup (fetch via the
+`DesignSync` tool, `get_file`, projectId `c289f723-3923-462a-8727-2f10ce5b59ee`),
+but the pptx's prose rules are more precise and take precedence for anything
+they both describe.
+
+## Rules confirmed by the pptx that aren't obvious from a screenshot alone
+
+- **List row**: 46px sport tile, 76px tall, headline number + one quiet
+  metrics line, day+time flush right.
+- **List headline**: distance + duration where both exist; duration alone
+  for badminton/indoor cycling; sets for strength. Avg HR/calories are
+  *secondary*-line detail, never part of the bold headline.
+- **Header chrome**: exactly two 44px targets on mobile — search and theme.
+  No third icon, no tab bar, no filters until the search icon is tapped.
+- **Detail stat grid**: distance/duration/pace at 27px in a 3-cell grid;
+  2 cells when there's no distance (duration + calories).
+- **HR zone bars**: scaled to the *longest* zone, not total activity time —
+  the dominant zone should read as visually full.
+- **Copy confirmation**: two feedbacks, two seconds — a toast above the bar
+  AND the button itself flips to a checkmark + "Copied" (outlined style,
+  not the solid fill), so it's visible without looking away from the thumb.
+- **Dark mode**: ground is `#161514` with rules at 35% white; sport hues
+  step *one shade lighter* than their light-mode value (matching the
+  accent's own light→dark shift ratio) so they still hold contrast.
+- **Desktop (≥900px)**: list becomes a fixed 372px column; the copy/source
+  actions move inline beside the title instead of a persistent bottom bar;
+  two more stat cells appear (max speed, calories); dynamics becomes a
+  single-column list instead of the mobile 2-column grid.
 
 ## Concept
 

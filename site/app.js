@@ -721,6 +721,11 @@ async function renderDetail(path) {
 const CHECK_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>';
 
+// "Two feedbacks, two seconds" per the mockup: the toast above the action
+// bar, AND the button itself flips to a checkmark — visible without
+// looking away from the thumb that just tapped it.
+const COPY_FEEDBACK_MS = 2000;
+
 function showToast(message) {
   const toast = document.getElementById("toast");
   toast.innerHTML = `<span class="toast-icon">${CHECK_ICON}</span><span>${escapeHtml(message)}</span>`;
@@ -728,7 +733,7 @@ function showToast(message) {
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => {
     toast.hidden = true;
-  }, 1800);
+  }, COPY_FEEDBACK_MS);
 }
 
 // The action buttons (Copy raw Markdown + source link) are rendered twice —
@@ -741,11 +746,29 @@ const COPY_ICON =
 const EXTERNAL_LINK_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>';
 
+const COPY_BTN_LABEL = `${COPY_ICON}Copy raw Markdown`;
+const COPY_BTN_LABEL_DONE = `${CHECK_ICON}Copied`;
+
 function actionButtonsHtml() {
   return `
-    <button class="copy-btn" type="button" disabled>${COPY_ICON}Copy raw Markdown</button>
+    <button class="copy-btn" type="button" disabled>${COPY_BTN_LABEL}</button>
     <a class="source-link" href="#" target="_blank" rel="noopener" title="View source on GitHub" aria-label="View source on GitHub">${EXTERNAL_LINK_ICON}</a>
   `;
+}
+
+function flashCopiedButtons() {
+  const btns = document.querySelectorAll(".copy-btn");
+  btns.forEach((b) => {
+    b.innerHTML = COPY_BTN_LABEL_DONE;
+    b.classList.add("copy-btn-done");
+  });
+  clearTimeout(flashCopiedButtons._t);
+  flashCopiedButtons._t = setTimeout(() => {
+    btns.forEach((b) => {
+      b.innerHTML = COPY_BTN_LABEL;
+      b.classList.remove("copy-btn-done");
+    });
+  }, COPY_FEEDBACK_MS);
 }
 
 document.addEventListener("click", async (e) => {
@@ -755,6 +778,7 @@ document.addEventListener("click", async (e) => {
     await navigator.clipboard.writeText(currentRawText);
     const bytes = new TextEncoder().encode(currentRawText).length;
     showToast(`Copied · ${bytes} B of Markdown`);
+    flashCopiedButtons();
   } catch (err) {
     showToast("Copy failed");
   }
@@ -789,6 +813,43 @@ document.getElementById("theme-toggle").addEventListener("click", () => {
     /* ignore */
   }
 });
+
+/* ------------------------------------------------------------------ */
+/* Search — "no filters until you ask for them": hidden by default,   */
+/* filters rendered rows in place by sport label/type text.            */
+/* ------------------------------------------------------------------ */
+
+const searchBar = document.getElementById("search-bar");
+const searchInput = document.getElementById("search-input");
+
+document.getElementById("search-toggle").addEventListener("click", () => {
+  const willShow = searchBar.hidden;
+  searchBar.hidden = !willShow;
+  if (willShow) {
+    searchInput.focus();
+  } else {
+    searchInput.value = "";
+    filterList("");
+  }
+});
+
+searchInput.addEventListener("input", () => filterList(searchInput.value));
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") document.getElementById("search-toggle").click();
+});
+
+function filterList(query) {
+  const q = query.trim().toLowerCase();
+  document.querySelectorAll(".list-group").forEach((group) => {
+    let anyVisible = false;
+    group.querySelectorAll(".activity-row").forEach((row) => {
+      const match = !q || row.textContent.toLowerCase().includes(q);
+      row.hidden = !match;
+      if (match) anyVisible = true;
+    });
+    group.hidden = !anyVisible;
+  });
+}
 
 /* ------------------------------------------------------------------ */
 /* Router                                                              */

@@ -18,13 +18,16 @@
           <h1 class="list-title">Activities</h1>
         </div>
         <div class="header-actions">
+          <button id="search-toggle" class="icon-btn" type="button" aria-label="Search activities">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+          </button>
           <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle theme">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
           </button>
-          <a class="icon-btn" href="https://github.com/arnabsen1729/garmin-parse" target="_blank" rel="noopener" aria-label="View repository on GitHub">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
-          </a>
         </div>
+      </div>
+      <div id="search-bar" hidden>
+        <input id="search-input" type="text" placeholder="Search activities…" autocomplete="off" />
       </div>
       <div id="list-status" class="muted">Loading activities…</div>
       <div id="list-groups"></div>
