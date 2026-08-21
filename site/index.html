@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>garmin-parse activities</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #666666;
+    --border: #dddddd;
+    --accent: #2563eb;
+    --code-bg: #f5f5f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --fg: #e8e8e8;
+      --muted: #9a9a9a;
+      --border: #2c2f36;
+      --accent: #5b9dff;
+      --code-bg: #1e2126;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #sidebar {
+    width: 300px;
+    min-width: 220px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 1rem;
+    flex-shrink: 0;
+  }
+  #sidebar h1 {
+    font-size: 1rem;
+    margin: 0 0 1rem;
+  }
+  #sidebar h1 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .year-group h2 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 1rem 0 0.4rem;
+  }
+  .activity-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border: none;
+    background: none;
+    color: var(--fg);
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+  .activity-item:hover { background: var(--code-bg); }
+  .activity-item.active { background: var(--accent); color: #fff; }
+  .activity-item .date { font-weight: 600; display: block; }
+  .activity-item .type { color: var(--muted); font-size: 0.78rem; }
+  .activity-item.active .type { color: #e6efff; }
+
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem 3rem;
+  }
+  #toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  #copy-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  #copy-btn:disabled { opacity: 0.5; cursor: default; }
+  #source-link { font-size: 0.8rem; color: var(--muted); }
+  #source-link a { color: var(--accent); }
+
+  #content table {
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+  #content th, #content td {
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    text-align: left;
+  }
+  #content code { background: var(--code-bg); padding: 0.1em 0.3em; border-radius: 4px; }
+  #placeholder, #error { color: var(--muted); }
+  #error { color: #d33; }
+</style>
+</head>
+<body>
+  <nav id="sidebar">
+    <h1><a href="https://github.com/arnabsen1729/garmin-parse" target="_blank" rel="noopener">garmin-parse</a></h1>
+    <div id="activity-list">Loading activities…</div>
+  </nav>
+  <main id="main">
+    <div id="toolbar" style="display:none;">
+      <span id="source-link"></span>
+      <button id="copy-btn">Copy raw data</button>
+    </div>
+    <div id="placeholder">Select an activity on the left to view its raw data.</div>
+    <div id="error" style="display:none;"></div>
+    <article id="content"></article>
+  </main>
+
+<script>
+const OWNER = "arnabsen1729";
+const REPO = "garmin-parse";
+const BRANCH = "main";
+
+const listEl = document.getElementById("activity-list");
+const contentEl = document.getElementById("content");
+const placeholderEl = document.getElementById("placeholder");
+const errorEl = document.getElementById("error");
+const toolbarEl = document.getElementById("toolbar");
+const copyBtn = document.getElementById("copy-btn");
+const sourceLinkEl = document.getElementById("source-link");
+
+let currentRaw = "";
+let activeBtn = null;
+
+function showError(msg) {
+  errorEl.textContent = msg;
+  errorEl.style.display = "block";
+  placeholderEl.style.display = "none";
+}
+
+function parseActivityPath(path) {
+  // activities/<year>/<YYYY-MM-DD>_<type>_<id>.md
+  const parts = path.split("/");
+  const filename = parts[parts.length - 1];
+  const match = filename.match(/^(\d{4}-\d{2}-\d{2})_(.+)_(\d+)\.md$/);
+  if (!match) return null;
+  const [, date, type, id] = match;
+  return {
+    path,
+    year: parts[1],
+    date,
+    type: type.replace(/_/g, " "),
+    id,
+  };
+}
+
+async function loadActivityList() {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`
+    );
+    if (!res.ok) throw new Error(`GitHub API returned ${res.status}`);
+    const data = await res.json();
+
+    const activities = data.tree
+      .filter((entry) => entry.type === "blob" && entry.path.startsWith("activities/") && entry.path.endsWith(".md"))
+      .map((entry) => parseActivityPath(entry.path))
+      .filter(Boolean)
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+
+    if (activities.length === 0) {
+      listEl.textContent = "No activities found.";
+      return;
+    }
+
+    renderList(activities);
+  } catch (err) {
+    listEl.textContent = "";
+    showError(`Failed to load activity list: ${err.message}`);
+  }
+}
+
+function renderList(activities) {
+  listEl.innerHTML = "";
+  const byYear = new Map();
+  for (const a of activities) {
+    if (!byYear.has(a.year)) byYear.set(a.year, []);
+    byYear.get(a.year).push(a);
+  }
+
+  for (const [year, items] of byYear) {
+    const group = document.createElement("div");
+    group.className = "year-group";
+    const heading = document.createElement("h2");
+    heading.textContent = year;
+    group.appendChild(heading);
+
+    for (const a of items) {
+      const btn = document.createElement("button");
+      btn.className = "activity-item";
+      btn.innerHTML = `<span class="date">${a.date}</span><span class="type">${a.type}</span>`;
+      btn.addEventListener("click", () => selectActivity(a, btn));
+      group.appendChild(btn);
+    }
+    listEl.appendChild(group);
+  }
+}
+
+async function selectActivity(activity, btn) {
+  if (activeBtn) activeBtn.classList.remove("active");
+  btn.classList.add("active");
+  activeBtn = btn;
+
+  placeholderEl.style.display = "none";
+  errorEl.style.display = "none";
+  toolbarEl.style.display = "none";
+  contentEl.innerHTML = "Loading…";
+
+  const rawUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${activity.path}`;
+  try {
+    const res = await fetch(rawUrl);
+    if (!res.ok) throw new Error(`Raw fetch returned ${res.status}`);
+    currentRaw = await res.text();
+
+    contentEl.innerHTML = marked.parse(currentRaw);
+    const githubUrl = `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/${activity.path}`;
+    sourceLinkEl.innerHTML = `<a href="${githubUrl}" target="_blank" rel="noopener">View source on GitHub</a>`;
+    toolbarEl.style.display = "flex";
+    copyBtn.disabled = false;
+    copyBtn.textContent = "Copy raw data";
+  } catch (err) {
+    contentEl.innerHTML = "";
+    showError(`Failed to load activity: ${err.message}`);
+  }
+}
+
+copyBtn.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(currentRaw);
+    copyBtn.textContent = "Copied!";
+    setTimeout(() => (copyBtn.textContent = "Copy raw data"), 1500);
+  } catch (err) {
+    copyBtn.textContent = "Copy failed";
+  }
+});
+
+loadActivityList();
+</script>
+</body>
+</html>

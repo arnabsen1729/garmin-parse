@@ -91,3 +91,26 @@ tool) is updated.
 ```sh
 uv run pytest
 ```
+
+## Web viewer
+
+`site/index.html` is a minimal, self-contained static page for browsing and
+copying an activity's raw Markdown from a browser — useful when you want to
+share a specific activity with someone without walking them through GitHub.
+It has no build step and no server: it fetches the file list and raw content
+straight from GitHub at page load, then renders the selected activity with a
+"Copy raw data" button.
+
+Because the page fetches from GitHub client-side with no authentication,
+**the repository must be public** for it to work.
+
+To deploy on [Vercel](https://vercel.com):
+
+1. Import this repository as a new Vercel project.
+2. Set **Root Directory** to `site`.
+3. Set the framework preset to "Other" (no build command, no output
+   directory override needed) — Vercel will serve `index.html` as a static
+   site.
+
+You can also just open `site/index.html` directly in a browser, or serve it
+locally with `python3 -m http.server` from inside `site/`.
