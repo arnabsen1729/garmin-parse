@@ -7,7 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css" />
+<!-- Bump ?v= whenever styles.css/app.js change. No build step means no
+     content-hashed filenames, and hosts (browsers, CDNs) can otherwise
+     cache these indefinitely across a hash-router navigation that never
+     reloads the page. -->
+<link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
   <div id="layout">
@@ -56,6 +60,6 @@
 
   <div id="toast" role="status" hidden></div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

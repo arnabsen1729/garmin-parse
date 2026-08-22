@@ -567,25 +567,27 @@ function buildTrainingEffect(g) {
   return `<div class="section"><div class="te-row">${primaryCell}${secondaryCell}</div></div>`;
 }
 
+// Sentence case, spelled out — matches the pptx mockup's Running Dynamics
+// list exactly ("Average cadence", not "Avg Cadence"). Applied consistently
+// to the other categories too, even though only running was directly
+// confirmed against a mockup slide.
 const DYNAMICS_LABELS = {
   running: {
-    "Average Cadence": "Avg Cadence",
-    "Max Cadence": "Max Cadence",
-    "Vertical Oscillation": "Vert. Oscillation",
-    "Stride Length": "Stride Length",
-    "Ground Contact Time": "Ground Contact",
-    "Elevation Gain": "Elevation Gain",
-    "Elevation Loss": "Elevation Loss",
+    "Average Cadence": "Average cadence",
+    "Max Cadence": "Max cadence",
+    "Vertical Oscillation": "Vertical oscillation",
+    "Stride Length": "Stride length",
+    "Ground Contact Time": "Ground contact time",
   },
   cycling: {
-    "Average Power": "Avg Power",
-    "Max Power": "Max Power",
-    "Normalized Power": "Normalized Power",
+    "Average Power": "Average power",
+    "Max Power": "Max power",
+    "Normalized Power": "Normalized power",
   },
   swimming: {
-    "Stroke Type": "Stroke Type",
+    "Stroke Type": "Stroke type",
     SWOLF: "SWOLF",
-    "Pool Length": "Pool Length",
+    "Pool Length": "Pool length",
     Lengths: "Lengths",
   },
   strength: {
@@ -618,7 +620,7 @@ function buildDynamics(g, typeFields, typeTitle, category, exerciseRows) {
       const lossSplit = splitValueUnit(loss);
       const unit = gainSplit.unit || lossSplit.unit || "";
       const value = `${gainSplit.num || "–"} / ${lossSplit.num || "–"}${unit ? " " + unit : ""}`;
-      items.push(["Elevation Gain / Loss", value]);
+      items.push(["Elevation gain / loss", value]);
     }
   }
 
