@@ -1,9 +1,10 @@
 ---
 id: TASK-15
 title: Implement Ledger redesign of the activity viewer site
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-21 15:52'
+updated_date: '2026-08-21 16:00'
 labels: []
 milestone: m-5
 dependencies: []
@@ -28,3 +29,9 @@ Rewrite site/ as the 'Ledger' direction documented in DESIGN.md (source: Claude 
 - [ ] #7 Repeat visits to an already-fetched activity read from sessionStorage instead of re-hitting the GitHub API
 - [ ] #8 No build step introduced; the site still deploys as static files (verified by opening it via a plain local static server, not just a dev server)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Rewrote site/ as the Ledger design: hash router (#/ list, #/a/<path> detail, both work on hard reload), grouped activity list (This week + calendar months, count/distance headers, sport-colored icon tiles, bold primary/muted secondary stat lines), detail view with adaptive stat grid, all-present HR zone rows with a shared color ramp, training-effect block, type-specific dynamics section (running/cycling/swimming/strength, mirroring src/garmin_parse/render.py's categories), sticky Copy raw Markdown button + toast, GitHub source link, 900px breakpoint (mobile replaces list with detail+back link; desktop shows a fixed 372px list column beside detail with active-row highlight), light/dark theme via CSS custom properties (auto + manual toggle), sessionStorage caching of fetched raw activity text keyed by path, hand-written ~150-line parser for render.py's '- **Key:** value' + HR-zone-table + type-section markdown format. Data fetching approach unchanged (GitHub tree API + raw.githubusercontent.com, unauthenticated, client-side). VERIFIED: parser traced against 3 real files (track_running with full dynamics, strength_training, badminton with sparse fields) via a throwaway node script (deleted after) — all fields extracted correctly, including a synthetic exercise-table case; index.html/app.js/styles.css read for correctness (brace balance checked, all getElementById ids cross-checked against index.html ids, node --check passed on app.js); served via python3 -m http.server and curled — /, /styles.css, /app.js all return 200, page shell structurally sound. NOT VERIFIED (no browser available): visual fidelity to the Claude Design mockup (DesignSync tool was not available in this environment, so icons/exact spacing are hand-approximated from DESIGN.md's token tables rather than pixel-matched to the canonical .dc.html — this should be checked manually), the 900px responsive breakpoint's actual rendering, copy-to-clipboard + toast interaction, hover/active states, and dark-mode/light-mode visual correctness beyond CSS review. Recommend a manual browser pass covering: reload on both #/ and a #/a/<path> URL, toggling width across 900px, copying an activity and checking the toast, and toggling the theme button.
+<!-- SECTION:NOTES:END -->

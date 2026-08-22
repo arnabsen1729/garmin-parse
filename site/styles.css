@@ -1,0 +1,719 @@
+/* Ledger — design tokens (see DESIGN.md) */
+:root {
+  color-scheme: light dark;
+
+  --bg: #f3f2f2;
+  --surface: #eae9e9;
+  --fg: #201e1d;
+  --divider-strong: rgba(32, 30, 29, 0.4);
+  --divider-hair: rgba(32, 30, 29, 0.18);
+  --muted: #7d7979;
+  --muted-2: #605d5d;
+  --accent: #ec3013;
+  --accent-hover: #dd2b0f;
+  --accent-active: #ae1800;
+
+  --hr-z1: #d7d3d3;
+  --hr-z2: #9b9797;
+  --hr-z3: #ffc4b8;
+  --hr-z4: #ec3013;
+  --hr-z5: #7c1405;
+
+  --sport-running: #ec3013;
+  --sport-track_running: #a8420c;
+  --sport-treadmill_running: #8a6a12;
+  --sport-road_biking: #2f6b4b;
+  --sport-indoor_cycling: #2b5c78;
+  --sport-lap_swimming: #34508c;
+  --sport-strength_training: #4a3d6b;
+  --sport-badminton: #7a2f52;
+  --sport-fallback: #605d5d;
+}
+
+html[data-theme="dark"] {
+  --bg: #161514;
+  --surface: #201e1d;
+  --fg: #f3f2f2;
+  --divider-strong: rgba(243, 242, 242, 0.35);
+  --divider-hair: rgba(243, 242, 242, 0.15);
+  --muted: #9b9797;
+  --muted-2: #bab6b6;
+  --accent: #ff563c;
+  --accent-hover: #ff7057;
+  --accent-active: #ff3d20;
+
+  --hr-z3: #ff9783;
+  --hr-z4: #ff563c;
+  --hr-z5: #dd2b0f;
+
+  /* Sport hues step one shade lighter on dark ground so they still hold
+     contrast — "Running" already IS the system accent (--accent above),
+     which itself steps lighter in dark mode. */
+  --sport-running: #ff563c;
+  --sport-track_running: #b76437;
+  --sport-treadmill_running: #9f843c;
+  --sport-road_biking: #54856b;
+  --sport-indoor_cycling: #517990;
+  --sport-lap_swimming: #586fa0;
+  --sport-strength_training: #6a5f85;
+  --sport-badminton: #915471;
+  --sport-fallback: #7c7a7a;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]):not([data-theme="dark"]) {
+    --bg: #161514;
+    --surface: #201e1d;
+    --fg: #f3f2f2;
+    --divider-strong: rgba(243, 242, 242, 0.35);
+    --divider-hair: rgba(243, 242, 242, 0.15);
+    --muted: #9b9797;
+    --muted-2: #bab6b6;
+    --accent: #ff563c;
+    --accent-hover: #ff7057;
+    --accent-active: #ff3d20;
+
+    --hr-z3: #ff9783;
+    --hr-z4: #ff563c;
+    --hr-z5: #dd2b0f;
+
+    --sport-running: #ff563c;
+    --sport-track_running: #b76437;
+    --sport-treadmill_running: #9f843c;
+    --sport-road_biking: #54856b;
+    --sport-indoor_cycling: #517990;
+    --sport-lap_swimming: #586fa0;
+    --sport-strength_training: #6a5f85;
+    --sport-badminton: #915471;
+    --sport-fallback: #7c7a7a;
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* Any element given an unconditional `display` value elsewhere in this
+   sheet silently defeats the [hidden] attribute (author-origin styles win
+   over the UA stylesheet's `[hidden]{display:none}` regardless of
+   specificity). Several elements here (#action-bar, #detail-actions-top,
+   #toast) do exactly that, so make [hidden] explicit and non-negotiable. */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: "Archivo", system-ui, sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+  padding-bottom: 64px; /* leave room for the sticky mobile action bar */
+}
+
+@media (min-width: 900px) {
+  /* No sticky bottom bar at this breakpoint — see #action-bar above. */
+  body { padding-bottom: 0; }
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+
+button {
+  font-family: inherit;
+  border-radius: 0;
+}
+
+.muted { color: var(--muted); padding: 24px 16px; }
+
+/* ---------------------------------------------------------------------- */
+/* List header ("garmin-parse" kicker + "Activities" title)               */
+/* ---------------------------------------------------------------------- */
+
+#list-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 12px;
+  border-bottom: 2px solid var(--divider-strong);
+}
+
+#search-bar { border-bottom: 1px solid var(--divider-hair); }
+#search-input {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 14px;
+}
+#search-input:focus { outline: none; }
+#search-input::placeholder { color: var(--muted); }
+
+.list-kicker {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.list-title {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 1px solid var(--divider-strong);
+  color: var(--fg);
+  cursor: pointer;
+}
+.icon-btn svg { width: 18px; height: 18px; }
+
+@media (min-width: 900px) {
+  .list-title { font-size: 25px; }
+  /* The desktop mockup's list header has no icon buttons at all — they're
+     a mobile-only affordance (the theme toggle still needs to live
+     somewhere; it's kept for mobile only, matching the reference exactly
+     rather than inventing a desktop equivalent the mockup never showed). */
+  .header-actions { display: none; }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Layout                                                                  */
+/* ---------------------------------------------------------------------- */
+
+#layout { display: block; }
+
+#list-pane, #detail-pane { display: none; }
+
+body[data-route="list"] #list-pane { display: block; }
+body[data-route="detail"] #detail-pane { display: block; }
+
+@media (min-width: 900px) {
+  #layout { display: flex; align-items: flex-start; }
+
+  #list-pane {
+    display: block !important;
+    width: 372px;
+    flex-shrink: 0;
+    border-right: 2px solid var(--divider-strong);
+    height: 100vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+  }
+
+  #detail-pane {
+    display: block !important;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Activity list                                                          */
+/* ---------------------------------------------------------------------- */
+
+.list-group { border-bottom: 1px solid var(--divider-hair); }
+
+.list-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 16px 16px 8px;
+  border-bottom: 2px solid var(--divider-strong);
+}
+
+.list-group-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+}
+
+.list-group-summary {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--divider-hair);
+  background: none;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+
+@media (min-width: 900px) {
+  .activity-row {
+    gap: 12px;
+    padding: 12px 16px;
+    border-left-width: 3px;
+  }
+}
+
+.activity-row:hover { background: var(--surface); }
+
+body[data-route="detail"] .activity-row.active,
+.activity-row.active {
+  background: var(--surface);
+}
+
+@media (min-width: 900px) {
+  .activity-row.active {
+    border-left-color: var(--row-accent, var(--accent));
+  }
+}
+
+.icon-tile {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--row-accent, var(--sport-fallback));
+  color: #fff;
+}
+
+/* Sizes match the Ledger mockup exactly: list rows are bigger on mobile
+   (thumb-friendly) and shrink slightly in the desktop column; the detail
+   hero icon is the reverse (grows slightly on desktop). */
+.activity-row .icon-tile { width: 46px; height: 46px; }
+.activity-row .icon-tile svg { width: 23px; height: 23px; }
+
+@media (min-width: 900px) {
+  .activity-row .icon-tile { width: 40px; height: 40px; }
+  .activity-row .icon-tile svg { width: 20px; height: 20px; }
+}
+
+.row-main { flex: 1; min-width: 0; }
+
+/* .row-sport/.row-primary/.row-secondary are plain <span>s. Without an
+   explicit display, they stay inline and flow side-by-side whenever
+   there's enough width for the sport label + headline to fit on one
+   line — which reads fine at narrow (390px) widths purely by accident
+   (the text is forced to wrap), then collapses onto one line at wider
+   viewports. display:block forces the intended 3-line stack regardless
+   of viewport width. */
+.row-sport {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--row-accent, var(--muted-2));
+}
+
+.row-primary {
+  display: block;
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-secondary {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-when {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 900px) {
+  .row-primary { font-size: 18px; }
+  /* Desktop list rows drop the secondary line and show only the weekday
+     (not time-of-day), matching the mockup's denser desktop column. */
+  .row-secondary { display: none; }
+  .row-when .row-when-time { display: none; }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Detail view                                                            */
+/* ---------------------------------------------------------------------- */
+
+.back-link {
+  display: block;
+  padding: 12px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--divider-hair);
+}
+
+@media (min-width: 900px) {
+  /* Must come after the base .back-link rule above — same specificity, so
+     source order decides, and an earlier copy of this same override (once
+     living up in the #layout media query) was silently losing to this
+     later, unconditional declaration. Desktop shows both panes at once;
+     there's nothing to "go back" to. */
+  .back-link { display: none; }
+}
+
+#detail-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px 16px;
+}
+
+/* The desktop-only inline action buttons (mirrors #action-bar's content,
+   see actionButtonsHtml() in app.js) — hidden on mobile, where the sticky
+   bottom bar is used instead. */
+#detail-actions-top { display: none; }
+
+@media (min-width: 900px) {
+  #detail-actions-top.action-buttons {
+    display: flex;
+    flex-shrink: 0;
+    gap: 10px;
+    padding: 26px 16px 0 0;
+  }
+  #detail-actions-top .copy-btn { min-height: 44px; padding: 0 16px; font-size: 13.5px; }
+  #detail-actions-top .source-link { width: 44px; }
+}
+#detail-hero .icon-tile { width: 42px; height: 42px; }
+#detail-hero .icon-tile svg { width: 22px; height: 22px; }
+
+@media (min-width: 900px) {
+  #detail-hero .icon-tile { width: 44px; height: 44px; }
+  #detail-hero .icon-tile svg { width: 23px; height: 23px; }
+}
+.hero-sport {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.hero-date {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 2px solid var(--divider-strong);
+  border-bottom: 2px solid var(--divider-strong);
+}
+
+@media (min-width: 560px) {
+  .stat-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+}
+
+.stat-cell {
+  padding: 16px;
+  border-right: 1px solid var(--divider-hair);
+  border-bottom: 1px solid var(--divider-hair);
+}
+.stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-unit {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+@media (min-width: 900px) {
+  .stat-value { font-size: 29px; }
+}
+
+.section {
+  padding: 16px;
+  border-bottom: 1px solid var(--divider-hair);
+}
+.section-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+}
+
+.section-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+.section-caption {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Sections without a caption (dynamics, exercise table) still need the
+   title's bottom margin that .section-title-row otherwise provides. */
+.section > .section-title { margin: 0 0 12px; }
+
+.hr-row {
+  display: grid;
+  grid-template-columns: 20px 1fr 50px;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+}
+.hr-zone-num {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+}
+/* Z4 (the dominant zone in a typical hard effort) reads as the "current"
+   row in the mockup — bold, full-contrast label and time. */
+.hr-row.hr-row-peak .hr-zone-num,
+.hr-row.hr-row-peak .hr-time {
+  color: var(--fg);
+  font-weight: 800;
+}
+
+@media (min-width: 900px) {
+  .hr-row { grid-template-columns: 24px 1fr 48px; gap: 12px; }
+}
+.hr-bar-track {
+  display: block;
+  height: 18px;
+  background: var(--divider-hair);
+}
+/* Must be display:block — as a bare inline <span>, `width` (set inline per
+   row) is simply ignored by the box model, which is why every zone bar
+   rendered as a flat, uncolored track with no visible fill at all. */
+.hr-bar-fill { display: block; height: 100%; }
+.hr-time {
+  font-size: 11.5px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-2);
+}
+
+@media (min-width: 900px) {
+  .hr-bar-track { height: 20px; }
+  .hr-time { font-size: 12px; }
+}
+
+.te-row {
+  display: flex;
+  border-top: 2px solid var(--divider-strong);
+  border-bottom: 2px solid var(--divider-strong);
+}
+.te-item {
+  flex: 1;
+  padding: 13px 12px 13px 0;
+  border-right: 1px solid var(--divider-hair);
+}
+.te-item:last-child {
+  flex: none;
+  width: 98px;
+  padding: 13px 0 13px 12px;
+  border-right: none;
+}
+.te-value-row { display: flex; align-items: baseline; gap: 8px; }
+.te-value {
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.te-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.te-label.te-label-accent { color: var(--accent-active); }
+
+@media (min-width: 900px) {
+  .te-item { padding: 13px 16px 13px 0; }
+  .te-item:last-child { width: 130px; padding: 13px 0 13px 16px; }
+}
+
+/* Mobile: 2-column grid (per the phone mockup). Desktop switches to a
+   single-column list (per the desktop mockup) — see the ≥900px override
+   below; nothing else about the item markup changes between the two. */
+.dynamics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.dyn-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--divider-hair);
+}
+.dyn-item:nth-child(odd) {
+  border-right: 1px solid var(--divider-hair);
+  padding-right: 12px;
+}
+.dyn-item:nth-child(even) { padding-left: 12px; }
+
+@media (min-width: 900px) {
+  .dynamics-grid { grid-template-columns: 1fr; }
+  .dyn-item {
+    padding: 10px 0;
+    border-right: none !important;
+  }
+  .dyn-item:nth-child(even) { padding-left: 0; }
+  .dyn-label { font-size: 12.5px; }
+}
+
+.dyn-label { font-size: 12px; color: var(--muted-2); }
+.dyn-value {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+}
+
+.exercise-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+.exercise-table th, .exercise-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--divider-hair);
+}
+.exercise-table th { color: var(--muted); text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; }
+
+/* ---------------------------------------------------------------------- */
+/* Action bar / toast                                                     */
+/* ---------------------------------------------------------------------- */
+
+#action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg);
+  border-top: 2px solid var(--divider-strong);
+  z-index: 10;
+}
+
+@media (min-width: 900px) {
+  /* Replaced by #detail-actions-top's inline buttons on desktop. */
+  #action-bar { display: none; }
+}
+
+.copy-btn {
+  flex: 1;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14.5px;
+  cursor: pointer;
+}
+.copy-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.copy-btn:hover { background: var(--accent-hover); }
+.copy-btn:active { background: var(--accent-active); }
+.copy-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* The "flipped to a check" confirmation state — an outlined look rather
+   than the usual solid fill, per the dark-mode mockup example. */
+.copy-btn.copy-btn-done {
+  background: var(--bg);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.source-link {
+  flex-shrink: 0;
+  width: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--divider-strong);
+  color: var(--fg);
+}
+.source-link svg { width: 20px; height: 20px; }
+
+#toast {
+  position: fixed;
+  bottom: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Always the light surface + accent check, even in dark theme — a
+     deliberate high-contrast "confirmation" look, per the mockup's dark
+     example. */
+  background: #f3f2f2;
+  color: #201e1d;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  z-index: 20;
+}
+.toast-icon { color: var(--accent); flex-shrink: 0; }
+.toast-icon svg { width: 18px; height: 18px; display: block; }
+
+@media (min-width: 900px) {
+  #toast { bottom: 24px; }
+}
