@@ -309,7 +309,15 @@ body[data-route="detail"] .activity-row.active,
 
 .row-main { flex: 1; min-width: 0; }
 
+/* .row-sport/.row-primary/.row-secondary are plain <span>s. Without an
+   explicit display, they stay inline and flow side-by-side whenever
+   there's enough width for the sport label + headline to fit on one
+   line — which reads fine at narrow (390px) widths purely by accident
+   (the text is forced to wrap), then collapses onto one line at wider
+   viewports. display:block forces the intended 3-line stack regardless
+   of viewport width. */
 .row-sport {
+  display: block;
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
@@ -318,6 +326,7 @@ body[data-route="detail"] .activity-row.active,
 }
 
 .row-primary {
+  display: block;
   font-weight: 800;
   font-size: 21px;
   letter-spacing: -0.02em;
@@ -328,6 +337,7 @@ body[data-route="detail"] .activity-row.active,
 }
 
 .row-secondary {
+  display: block;
   font-size: 12.5px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
