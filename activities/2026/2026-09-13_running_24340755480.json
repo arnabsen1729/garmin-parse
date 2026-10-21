@@ -1,0 +1,122 @@
+{
+  "activity_id": "24340755480",
+  "activity_name": "Bengaluru Running",
+  "activity_type": "running",
+  "capture": {
+    "capture_version": 1,
+    "sha256": "cf038e2d77a9f1b99a69b7e7ab47e7284afceb2667792be683c96b149330cab0",
+    "statuses": {
+      "detail": "available",
+      "exercise_sets": "available",
+      "fit": "available",
+      "gear": "empty",
+      "hr_zones": "available",
+      "power_zones": "available",
+      "split_summaries": "available",
+      "splits": "available",
+      "summary": "available",
+      "time_series": "available",
+      "typed_splits": "available",
+      "weather": "available",
+      "workout": "not_linked"
+    },
+    "warnings": [
+      "Location/route fields, account/device identity and unnamed FIT fields are excluded by the capture policy."
+    ]
+  },
+  "fetched_at": "2026-10-21T05:52:59.698423Z",
+  "hr_zones_s": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 456.968,
+    "4": 0.0,
+    "5": 0.0
+  },
+  "laps": [
+    {
+      "index": 0,
+      "metrics": {
+        "aerobic_training_effect": null,
+        "anaerobic_training_effect": null,
+        "average_cadence_spm": null,
+        "average_hr_bpm": 157.0,
+        "average_pace_s_km": 408.0,
+        "average_power_w": 232.0,
+        "average_speed_m_s": 2.446000099182129,
+        "calories_kcal": 71.0,
+        "distance_m": 1000.0,
+        "elapsed_duration_s": 408.904,
+        "elevation_gain_m": 3.0,
+        "elevation_loss_m": 5.0,
+        "ground_contact_balance_percent": null,
+        "ground_contact_time_ms": null,
+        "maximum_cadence_spm": null,
+        "maximum_hr_bpm": 162.0,
+        "maximum_speed_m_s": 2.743000030517578,
+        "moving_duration_s": 408.0,
+        "stride_length_m": null,
+        "vertical_oscillation_cm": null,
+        "vertical_ratio_percent": null
+      }
+    },
+    {
+      "index": 1,
+      "metrics": {
+        "aerobic_training_effect": null,
+        "anaerobic_training_effect": null,
+        "average_cadence_spm": null,
+        "average_hr_bpm": 158.0,
+        "average_pace_s_km": 451.3588783251705,
+        "average_power_w": 209.0,
+        "average_speed_m_s": 2.1659998893737793,
+        "calories_kcal": 7.0,
+        "distance_m": 104.13,
+        "elapsed_duration_s": 48.073,
+        "elevation_gain_m": 1.0,
+        "elevation_loss_m": 0.0,
+        "ground_contact_balance_percent": null,
+        "ground_contact_time_ms": null,
+        "maximum_cadence_spm": null,
+        "maximum_hr_bpm": 160.0,
+        "maximum_speed_m_s": 2.249000072479248,
+        "moving_duration_s": 47.0,
+        "stride_length_m": null,
+        "vertical_oscillation_cm": null,
+        "vertical_ratio_percent": null
+      }
+    }
+  ],
+  "last_successful_fetch_at": "2026-10-21T05:52:59.698423Z",
+  "local_date": "2026-09-13",
+  "local_start": "2026-09-13T08:52:52",
+  "markdown_sha256": "34cc32e0a92b9acafa3c5f04b381bf60c1748f31662d9c6d4068cb6d3b622587",
+  "metrics": {
+    "aerobic_training_effect": 1.600000023841858,
+    "anaerobic_training_effect": 0.0,
+    "average_cadence_spm": 160.171875,
+    "average_hr_bpm": 157.0,
+    "average_pace_s_km": 412.0891543458161,
+    "average_power_w": 230.0,
+    "average_speed_m_s": 2.4159998893737793,
+    "calories_kcal": 79.0,
+    "distance_m": 1104.1300048828125,
+    "elapsed_duration_s": 456.97698974609375,
+    "elevation_gain_m": 5.0,
+    "elevation_loss_m": 5.0,
+    "ground_contact_balance_percent": null,
+    "ground_contact_time_ms": 280.8999938964844,
+    "maximum_cadence_spm": 167.0,
+    "maximum_hr_bpm": 162.0,
+    "maximum_speed_m_s": 2.743000030517578,
+    "moving_duration_s": 455.0,
+    "stride_length_m": 0.9167999877929688,
+    "vertical_oscillation_cm": 8.90999984741211,
+    "vertical_ratio_percent": 9.739999771118164
+  },
+  "missing_resources": [],
+  "schema_version": 2,
+  "source": "garmin_connect",
+  "start_timestamp": "2026-09-13T03:22:52Z",
+  "summary_fingerprint": "e77fbb580d7ed942be06e6c2d3e4ab9cd9c4df90c48341cf0d39f41dc786771c",
+  "timezone": null
+}
