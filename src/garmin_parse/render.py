@@ -425,5 +425,7 @@ def write_activity_file(activity: dict[str, Any], activities_dir: Path) -> Path:
     """
     path = activity_file_path(activity, Path(activities_dir))
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_activity_markdown(activity))
+    from garmin_parse.storage import atomic_write
+
+    atomic_write(path, render_activity_markdown(activity))
     return path

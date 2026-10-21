@@ -1,34 +1,11 @@
-"""Command-line interface for garmin-parse.
-
-Exposes a single ``sync`` command that:
-
-1. Authenticates against Garmin Connect (``auth.get_client``).
-2. Fetches every activity not yet saved locally
-   (``activities.fetch_new_activities``), which returns a list of
-   *bundles* shaped ``{"summary": ..., "detail": ..., "splits": ...,
-   "hr_zones": ...}``.
-3. Flattens each bundle (summary fields merged to the top level, alongside
-   ``detail``/``splits``/``hr_zones``) into the flat shape expected by
-   ``render.write_activity_file``, and writes it to disk.
-4. Prints a one-line summary of how many new activities were saved.
-
-``auth.py`` and ``activities.py``/``render.py`` disagree about shape (a
-bundle vs. a flat dict) -- ``_flatten_bundle`` below is the glue that
-adapts between them, kept local to the CLI so neither module needs to
-change.
-"""
-
+"""Typer commands for synchronization and read-only analytics MCP."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
-from typing import Any
 
 import typer
 
-from garmin_parse import activities as activities_module
-from garmin_parse import auth as auth_module
-from garmin_parse import render as render_module
-from garmin_parse.auth import GarminAuthError
 
 app = typer.Typer()
 
@@ -37,64 +14,67 @@ DEFAULT_ACTIVITIES_DIR = Path("activities")
 
 @app.callback()
 def _callback() -> None:
-    """garmin-parse: sync Garmin Connect activities to local Markdown files."""
-    # Empty callback: its only purpose is to force Typer to keep "sync" as
-    # a named subcommand (`garmin-parse sync ...`) instead of collapsing
-    # to a single top-level command, which is Typer's default when an app
-    # has exactly one registered command and no callback.
-
-
-def _flatten_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
-    """Adapt an ``activities.fetch_new_activities`` bundle into the flat
-    shape ``render.write_activity_file`` expects.
-
-    A bundle looks like ``{"summary": {...}, "detail": ..., "splits": ...,
-    "hr_zones": ...}``; ``render`` wants the summary's fields merged to the
-    top level alongside ``detail``/``splits``/``hr_zones``.
-    """
-    summary = bundle.get("summary") or {}
-    return {
-        **summary,
-        "detail": bundle.get("detail"),
-        "splits": bundle.get("splits"),
-        "hr_zones": bundle.get("hr_zones"),
-    }
+    """Sync Garmin activities and query deterministic training analytics."""
+    # Keep the command group explicit as additional commands are registered.
 
 
 @app.command()
 def sync(
-    activities_dir: Path = typer.Option(
-        DEFAULT_ACTIVITIES_DIR,
-        "--activities-dir",
-        help="Directory to read/write rendered activity Markdown files from/to.",
-    ),
+    activities_dir: Path = typer.Option(DEFAULT_ACTIVITIES_DIR, "--activities-dir"),
+    backfill: bool = typer.Option(False, "--backfill", help="Populate and repair JSON across all history."),
+    reconcile: bool = typer.Option(False, "--reconcile", help="Refetch all records, including detail-only changes."),
 ) -> None:
-    """Sync new Garmin Connect activities to local Markdown files."""
+    """Sync Garmin activities to Markdown and validated JSON."""
+    from garmin_parse import auth as auth_module
+    from garmin_parse.auth import GarminAuthError
+    from garmin_parse.sync import sync_with_auth
+    from garminconnect.exceptions import GarminConnectAuthenticationError
+
+    if backfill and reconcile:
+        raise typer.BadParameter("Choose either --backfill or --reconcile")
     try:
-        client = auth_module.get_client()
-    except GarminAuthError as exc:
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
+        stats = sync_with_auth(auth_module.get_client, activities_dir, mode="backfill" if backfill else "reconcile" if reconcile else "incremental")
+    except (GarminAuthError, GarminConnectAuthenticationError) as exc:
+        typer.secho(f"Authentication failure: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from None
+    except OSError as exc:
+        typer.secho(f"Filesystem persistence failure: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from None
+    except Exception as exc:
+        typer.secho(f"Garmin sync failed: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from None
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with Path(summary_path).open("a") as stream:
+            stream.write("\n### Garmin sync\n\n")
+            stream.write("| Scanned | New | Updated | Incomplete | Skipped | Failed | Storage warnings |\n|---|---|---|---|---|---|---|\n")
+            stream.write(f"| {stats.scanned} | {stats.new} | {stats.updated} | {stats.incomplete} | {stats.skipped} | {stats.failed} | {stats.storage_warnings} |\n")
+    typer.echo("Garmin sync completed" if stats.successful else "Garmin sync partial")
+    for label, value in (("Activities scanned", stats.scanned), ("New activities", stats.new),
+                         ("Updated activities", stats.updated), ("Incomplete activities", stats.incomplete),
+                         ("Skipped activities", stats.skipped), ("Failed activities", stats.failed), ("Storage warnings", stats.storage_warnings)):
+        typer.echo(f"{label}: {value}")
+    if not stats.successful:
+        raise typer.Exit(2)
 
+
+@app.command()
+def mcp(
+    activities_dir: Path = typer.Option(DEFAULT_ACTIVITIES_DIR, "--activities-dir"),
+    transport: str = typer.Option("stdio", "--transport", help="stdio or streamable-http (OAuth required)."),
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8000, "--port", min=1, max=65535),
+) -> None:
+    """Start a read-only analytics server; does not authenticate with Garmin."""
+    from garmin_parse.mcp_server import create_server
+
+    if transport not in {"stdio", "streamable-http"}:
+        raise typer.BadParameter("Unsupported transport")
     try:
-        bundles = activities_module.fetch_new_activities(client, activities_dir)
-    except Exception as exc:  # noqa: BLE001 - normalize into a clean CLI error
-        typer.secho(
-            f"Error: failed to fetch activities from Garmin Connect: {exc}",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(code=1) from None
-
-    if not bundles:
-        typer.echo("0 new activities — already up to date")
-        return
-
-    for bundle in bundles:
-        flattened = _flatten_bundle(bundle)
-        render_module.write_activity_file(flattened, activities_dir)
-
-    typer.echo(f"{len(bundles)} new activities saved")
+        server = create_server(activities_dir, remote=transport == "streamable-http", host=host, port=port)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from None
+    server.run(transport=transport)
 
 
 def main() -> None:

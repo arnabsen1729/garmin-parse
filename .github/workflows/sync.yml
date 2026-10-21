@@ -3,8 +3,12 @@ name: Sync Garmin activities
 on:
   workflow_dispatch: {}
   schedule:
-    # Daily at 06:00 IST (00:30 UTC).
-    - cron: '30 0 * * *'
+    # Target 08:00 IST; GitHub may delay or skip scheduled runs.
+    - cron: "30 2 * * *"
+
+concurrency:
+  group: garmin-sync-main
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -12,9 +16,13 @@ permissions:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -26,8 +34,12 @@ jobs:
         env:
           GARMIN_TOKENSTORE: ${{ secrets.GARMIN_TOKENSTORE }}
         run: |
+          test -n "$GARMIN_TOKENSTORE" || { echo "::error::GARMIN_TOKENSTORE is missing; seed an authenticated session."; exit 1; }
           mkdir -p ~/.garminconnect
+          chmod 700 ~/.garminconnect
           printf '%s' "$GARMIN_TOKENSTORE" > ~/.garminconnect/garmin_tokens.json
+          chmod 600 ~/.garminconnect/garmin_tokens.json
+          cp ~/.garminconnect/garmin_tokens.json "$RUNNER_TEMP/garmin-tokens-before.json"
 
       - name: Run sync
         id: sync
@@ -35,27 +47,34 @@ jobs:
         run: uv run garmin-parse sync
 
       - name: Commit and push new activities
-        if: always()
+        if: always() && steps.sync.outcome != 'skipped'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add activities/
+          python - <<'PYADD'
+          import subprocess
+          from pathlib import Path
+          paths = [str(p) for p in Path("activities").rglob("*") if p.is_file() and p.suffix in {".md", ".json"} and not p.name.startswith(".pending-")]
+          if paths:
+              subprocess.run(["git", "add", "--", *paths], check=True)
+          PYADD
           if git diff --cached --quiet; then
             echo "No new activities to commit."
           else
             git commit -m "chore: sync Garmin activities"
+            git pull --rebase origin main
             git push
           fi
 
       - name: Refresh GARMIN_TOKENSTORE secret
-        if: always()
+        if: always() && steps.sync.outcome != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.SECRETS_PAT }}
         run: |
-          if [ -f ~/.garminconnect/garmin_tokens.json ]; then
+          if [ -s ~/.garminconnect/garmin_tokens.json ] && ! cmp -s ~/.garminconnect/garmin_tokens.json "$RUNNER_TEMP/garmin-tokens-before.json"; then
             gh secret set GARMIN_TOKENSTORE --repo "$GITHUB_REPOSITORY" < ~/.garminconnect/garmin_tokens.json
           else
-            echo "No token file found; skipping secret refresh."
+            echo "Session unchanged or absent; skipping secret refresh."
           fi
 
       - name: Fail job if sync step failed

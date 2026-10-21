@@ -30,6 +30,9 @@ from pathlib import Path
 from typing import Any
 
 from garmin_parse.existing import existing_activity_ids
+from garminconnect.exceptions import GarminConnectAuthenticationError, GarminConnectTooManyRequestsError
+from requests.exceptions import ConnectionError, Timeout
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +43,15 @@ DEFAULT_STOP_AFTER_CONSECUTIVE_KNOWN = 20
 def _safe_fetch(activity_id: str, description: str, fn: Callable[[], Any]) -> Any | None:
     """Call ``fn`` and return its result, or ``None`` (with a warning) on failure."""
     try:
-        return fn()
+        for attempt in range(3):
+            try:
+                return fn()
+            except (ConnectionError, Timeout):
+                if attempt == 2:
+                    raise
+                time.sleep(2 ** attempt)
+    except (GarminConnectAuthenticationError, GarminConnectTooManyRequestsError):
+        raise
     except Exception as exc:  # noqa: BLE001 - deliberately broad: isolate one sub-call
         logger.warning(
             "Failed to fetch %s for activity %s: %s", description, activity_id, exc

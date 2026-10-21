@@ -1,130 +1,72 @@
-"""Tests for garmin_parse.cli's ``sync`` command.
-
-All Garmin/network/filesystem interaction is mocked: ``auth.get_client``,
-``activities.fetch_new_activities``, and ``render.write_activity_file`` are
-monkeypatched so nothing here hits the network or writes real files beyond
-``tmp_path``.
-"""
-
-from __future__ import annotations
-
-from pathlib import Path
+"""CLI integration tests exercise actual synchronization with a fake Garmin client."""
+import json
+from unittest.mock import MagicMock
 
 from typer.testing import CliRunner
 
-from garmin_parse import cli
+from garmin_parse import cli, auth
 from garmin_parse.auth import GarminAuthError
 
 runner = CliRunner()
 
 
-def _bundle(activity_id: int, **extra_summary_fields):
-    summary = {"activityId": activity_id, "activityType": {"typeKey": "running"}}
-    summary.update(extra_summary_fields)
-    return {
-        "summary": summary,
-        "detail": {"summaryDTO": {}},
-        "splits": {"some": "splits"},
-        "hr_zones": [{"zoneNumber": 1, "secsInZone": 60}],
-    }
+def client_with(rows):
+    client = MagicMock()
+    client.get_activities.return_value = rows
+    client.get_activity.return_value = {"summaryDTO": {}}
+    client.get_activity_splits.return_value = {"lapDTOs": []}
+    client.get_activity_hr_in_timezones.return_value = []
+    client.get_activity_details.return_value = {"metricDescriptors": [], "activityDetailMetrics": []}
+    for endpoint in ("get_activity_typed_splits", "get_activity_split_summaries", "get_activity_power_in_timezones", "get_activity_weather", "get_activity_gear", "get_activity_exercise_sets"):
+        getattr(client, endpoint).return_value = {}
+    from garminconnect.exceptions import GarminConnectNotFoundError
+    client.download_activity.side_effect = GarminConnectNotFoundError("No original recording")
+    return client
 
 
-def test_sync_flattens_bundles_and_writes_each(monkeypatch, tmp_path):
-    bundles = [_bundle(1), _bundle(2), _bundle(3)]
-
-    written: list[dict] = []
-
-    def fake_get_client(*args, **kwargs):
-        return object()
-
-    def fake_fetch_new_activities(client, activities_dir):
-        return bundles
-
-    def fake_write_activity_file(activity, activities_dir):
-        written.append(activity)
-        return Path(activities_dir) / "fake.md"
-
-    monkeypatch.setattr(cli.auth_module, "get_client", fake_get_client)
-    monkeypatch.setattr(
-        cli.activities_module, "fetch_new_activities", fake_fetch_new_activities
-    )
-    monkeypatch.setattr(cli.render_module, "write_activity_file", fake_write_activity_file)
-
-    result = runner.invoke(
-        cli.app, ["sync", "--activities-dir", str(tmp_path)]
-    )
-
-    assert result.exit_code == 0
-    assert "3 new activities saved" in result.stdout
-    assert len(written) == 3
-
-    for i, activity in enumerate(written, start=1):
-        # Flattened: summary fields merged to top level.
-        assert activity["activityId"] == i
-        assert activity["activityType"] == {"typeKey": "running"}
-        # Plus the three extra keys from the bundle, alongside summary fields.
-        assert activity["detail"] == {"summaryDTO": {}}
-        assert activity["splits"] == {"some": "splits"}
-        assert activity["hr_zones"] == [{"zoneNumber": 1, "secsInZone": 60}]
-        # No leftover "summary" key -- it was flattened, not nested.
-        assert "summary" not in activity
-
-
-def test_sync_zero_new_activities_prints_up_to_date(monkeypatch, tmp_path):
-    def fake_get_client(*args, **kwargs):
-        return object()
-
-    def fake_fetch_new_activities(client, activities_dir):
-        return []
-
-    write_calls = []
-
-    def fake_write_activity_file(activity, activities_dir):
-        write_calls.append(activity)
-        return Path(activities_dir) / "fake.md"
-
-    monkeypatch.setattr(cli.auth_module, "get_client", fake_get_client)
-    monkeypatch.setattr(
-        cli.activities_module, "fetch_new_activities", fake_fetch_new_activities
-    )
-    monkeypatch.setattr(cli.render_module, "write_activity_file", fake_write_activity_file)
-
+def test_sync_writes_both_formats(monkeypatch, tmp_path):
+    client = client_with([{"activityId": 1, "activityType": {"typeKey": "running"}, "startTimeLocal": "2026-01-01 08:00:00", "distance": 5000}])
+    monkeypatch.setattr(auth, "get_client", lambda: client)
     result = runner.invoke(cli.app, ["sync", "--activities-dir", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    assert "New activities: 1" in result.stdout
+    assert len(list(tmp_path.glob('*/*.md'))) == 1
+    assert json.loads(next(p for p in tmp_path.glob('*/*.json') if not p.name.endswith('.details.json')).read_text())["metrics"]["distance_m"] == 5000
 
-    assert result.exit_code == 0
-    assert "0 new activities" in result.stdout
-    assert "up to date" in result.stdout
-    assert write_calls == []
 
-
-def test_sync_auth_failure_produces_clean_error(monkeypatch, tmp_path):
-    def fake_get_client(*args, **kwargs):
-        raise GarminAuthError("Garmin login failed: bad credentials")
-
-    monkeypatch.setattr(cli.auth_module, "get_client", fake_get_client)
-
+def test_sync_zero_new(monkeypatch, tmp_path):
+    monkeypatch.setattr(auth, "get_client", lambda: client_with([]))
     result = runner.invoke(cli.app, ["sync", "--activities-dir", str(tmp_path)])
+    assert result.exit_code == 0
+    assert "New activities: 0" in result.stdout
 
-    assert result.exit_code != 0
-    # A clean error message, not a raw traceback dumped to the console.
-    assert "Garmin login failed" in result.output
+
+def test_sync_auth_failure(monkeypatch, tmp_path):
+    def fail():
+        raise GarminAuthError("bad credentials")
+    monkeypatch.setattr(auth, "get_client", fail)
+    result = runner.invoke(cli.app, ["sync", "--activities-dir", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "bad credentials" in result.output
     assert "Traceback" not in result.output
 
 
-def test_sync_fetch_failure_produces_clean_error(monkeypatch, tmp_path):
-    def fake_get_client(*args, **kwargs):
-        return object()
-
-    def fake_fetch_new_activities(client, activities_dir):
-        raise RuntimeError("session expired")
-
-    monkeypatch.setattr(cli.auth_module, "get_client", fake_get_client)
-    monkeypatch.setattr(
-        cli.activities_module, "fetch_new_activities", fake_fetch_new_activities
-    )
-
+def test_sync_fetch_failure(monkeypatch, tmp_path):
+    client = client_with([])
+    client.get_activities.side_effect = RuntimeError("session expired")
+    monkeypatch.setattr(auth, "get_client", lambda: client)
     result = runner.invoke(cli.app, ["sync", "--activities-dir", str(tmp_path)])
-
-    assert result.exit_code != 0
+    assert result.exit_code == 1
     assert "session expired" in result.output
-    assert "Traceback" not in result.output
+
+
+def test_mutually_exclusive_modes():
+    result = runner.invoke(cli.app, ["sync", "--backfill", "--reconcile"])
+    assert result.exit_code == 2
+
+
+def test_http_refuses_missing_auth_configuration(monkeypatch, tmp_path):
+    monkeypatch.delenv("GARMIN_MCP_ISSUER", raising=False)
+    result = runner.invoke(cli.app, ["mcp", "--activities-dir", str(tmp_path), "--transport", "streamable-http"])
+    assert result.exit_code == 2
+    assert "HTTP requires" in result.output
