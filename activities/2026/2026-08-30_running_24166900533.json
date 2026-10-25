@@ -4,7 +4,7 @@
   "activity_type": "running",
   "capture": {
     "capture_version": 1,
-    "sha256": "f55585fa772c7981306bc9650f36f9be946ed8044f670f255a7c560b0edf3d4d",
+    "sha256": "725ec6862740c07bb3b8082c63bd99b1daf2e143523d1c55cd8253bfda292186",
     "statuses": {
       "detail": "available",
       "exercise_sets": "available",
@@ -24,7 +24,7 @@
       "Location/route fields, account/device identity and unnamed FIT fields are excluded by the capture policy."
     ]
   },
-  "fetched_at": "2026-10-21T05:53:32.670802Z",
+  "fetched_at": "2026-10-25T07:46:06.533839Z",
   "hr_zones_s": {
     "1": 19.314,
     "2": 24.998,
@@ -190,7 +190,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-21T05:53:32.670802Z",
+  "last_successful_fetch_at": "2026-10-25T07:46:06.533839Z",
   "local_date": "2026-08-30",
   "local_start": "2026-08-30T08:16:37",
   "markdown_sha256": "9f520e065a97d7c4a6831174261c2389e8b550362af2f1693ccfa1e17ba9253e",
@@ -221,6 +221,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-08-30T02:46:37Z",
-  "summary_fingerprint": "686a4ac9f87e6a0aa1e2b41cb3ad60e3952bf1c4bf099a5b3c2a40e35046e648",
+  "summary_fingerprint": "17fbcd99531cd843f345eee5f3a8de4bd872e0514ccb807050a3ba3a0921e0f7",
   "timezone": null
 }

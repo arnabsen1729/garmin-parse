@@ -3,7 +3,7 @@
   "activity_name": "Badminton",
   "activity_type": "badminton",
   "capture": null,
-  "fetched_at": "2026-10-21T05:54:03.587763Z",
+  "fetched_at": "2026-10-25T07:46:18.235914Z",
   "hr_zones_s": {
     "1": 2023.196,
     "2": 1510.856,
@@ -39,7 +39,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-21T05:54:03.587763Z",
+  "last_successful_fetch_at": "2026-10-25T07:46:18.235914Z",
   "local_date": "2026-08-15",
   "local_start": "2026-08-15T20:07:22",
   "markdown_sha256": "00f40fc9f28bc736f57dee07fbf0f867f29bc38ebe23641c870536b291511340",
@@ -70,6 +70,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-08-15T14:37:22Z",
-  "summary_fingerprint": "bdfb9a928e6d3ade34850eded7b23164b42c9fdef03da9b088ca0154dd27bc33",
+  "summary_fingerprint": "d167aad67986c20e0c17ec79657059f99be36bad19140f16386f6392daa6f5ff",
   "timezone": null
 }

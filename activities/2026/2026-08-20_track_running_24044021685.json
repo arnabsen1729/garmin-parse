@@ -4,7 +4,7 @@
   "activity_type": "track_running",
   "capture": {
     "capture_version": 1,
-    "sha256": "05afee1b3d982de629930c22b716a1673fbadb228964717628c51a3d52d60031",
+    "sha256": "0a4bab360d8b9f8a1dcd2c361c240853f5023c722f77e2e85a935af6b926e79a",
     "statuses": {
       "detail": "available",
       "exercise_sets": "available",
@@ -25,7 +25,7 @@
       "workout: Garmin has no resource for this activity (404)"
     ]
   },
-  "fetched_at": "2026-10-21T05:53:48.338709Z",
+  "fetched_at": "2026-10-25T07:46:12.685723Z",
   "hr_zones_s": {
     "1": 21.0,
     "2": 45.999,
@@ -139,7 +139,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-21T05:53:48.338709Z",
+  "last_successful_fetch_at": "2026-10-25T07:46:12.685723Z",
   "local_date": "2026-08-20",
   "local_start": "2026-08-20T09:21:57",
   "markdown_sha256": "3559f5a3eeb79ee20f7cbfd3558489d779d7edf52fd938b2064f5100914852d0",
@@ -170,6 +170,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-08-20T03:51:57Z",
-  "summary_fingerprint": "92ec892adac5f2f4bdc714b63d57f52db287f51714a1c1d58d4ebf0c9212517f",
+  "summary_fingerprint": "db0976a08034bfffd39c55b88ce66c4448294ec3c6518097238f86e7a7553496",
   "timezone": null
 }

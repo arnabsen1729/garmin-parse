@@ -3,7 +3,7 @@
   "activity_name": "Strength",
   "activity_type": "strength_training",
   "capture": null,
-  "fetched_at": "2026-10-21T05:53:46.569058Z",
+  "fetched_at": "2026-10-25T07:46:12.204798Z",
   "hr_zones_s": {
     "1": 2263.33,
     "2": 438.168,
@@ -39,7 +39,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-21T05:53:46.569058Z",
+  "last_successful_fetch_at": "2026-10-25T07:46:12.204798Z",
   "local_date": "2026-08-22",
   "local_start": "2026-08-22T18:27:15",
   "markdown_sha256": "fa3369ab318dd157a659748beb9c69fbc2fe82d203f0286826b24f9bd9b2b63d",
@@ -70,6 +70,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-08-22T12:57:15Z",
-  "summary_fingerprint": "835be9f6874f1a70aa7d4ff0411eecc68760171bb3608238209e81d765df5d5f",
+  "summary_fingerprint": "f6ccb7322886a9536868fb3e4a52d258f107aabf016a16ede375dc7a46f84b02",
   "timezone": null
 }

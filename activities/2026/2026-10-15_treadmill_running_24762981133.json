@@ -4,7 +4,7 @@
   "activity_type": "treadmill_running",
   "capture": {
     "capture_version": 1,
-    "sha256": "f92307dd8787a9bdfeb7c3ae098e004912c08f23a223fe7370a88c907f4c7e27",
+    "sha256": "e9dcbcbec6589c2dfaa23d42d18e1c54b6108437bee55e96790d4ec13fca4714",
     "statuses": {
       "detail": "available",
       "exercise_sets": "available",
@@ -24,7 +24,7 @@
       "Location/route fields, account/device identity and unnamed FIT fields are excluded by the capture policy."
     ]
   },
-  "fetched_at": "2026-10-21T05:52:46.770791Z",
+  "fetched_at": "2026-10-25T07:45:47.400150Z",
   "hr_zones_s": {
     "1": 368.988,
     "2": 282.003,
@@ -190,7 +190,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-21T05:52:46.770791Z",
+  "last_successful_fetch_at": "2026-10-25T07:45:47.400150Z",
   "local_date": "2026-10-15",
   "local_start": "2026-10-15T08:37:09",
   "markdown_sha256": "b536b427ca6e38971b7816bc0e67917caf57de7938769dea4f1327a7950a6a6b",
@@ -221,6 +221,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-10-15T03:07:09Z",
-  "summary_fingerprint": "c75ba44b9e7e16f4f01e8a29cebbb0efb249f39e95c66cf8ba739628e154efd2",
+  "summary_fingerprint": "4a94c760f6b0551ddfcf5344eb605711768b1d0b615d2c741b9cd7b84f48fb58",
   "timezone": null
 }

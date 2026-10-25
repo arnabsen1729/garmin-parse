@@ -3,7 +3,7 @@
   "activity_name": "Indoor Cycling",
   "activity_type": "indoor_cycling",
   "capture": null,
-  "fetched_at": "2026-10-21T05:53:56.319744Z",
+  "fetched_at": "2026-10-25T07:46:16.085956Z",
   "hr_zones_s": {
     "1": 232.481,
     "2": 394.141,
@@ -39,7 +39,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-21T05:53:56.319744Z",
+  "last_successful_fetch_at": "2026-10-25T07:46:16.085956Z",
   "local_date": "2026-08-17",
   "local_start": "2026-08-17T12:04:30",
   "markdown_sha256": "9fbb7b4d9a636151b3d5ddf05f4187792b43f37c55bc32b5c896c0476b452ca9",
@@ -70,6 +70,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-08-17T06:34:30Z",
-  "summary_fingerprint": "97b33ac82b4e639797eb3fe81e840b0abda0bd1ff2ebd14162b4457243b0b987",
+  "summary_fingerprint": "e044a40a0c11100c6635098ea9d702ffd4d90a50de0fed3a1c095dd897ae3e36",
   "timezone": null
 }

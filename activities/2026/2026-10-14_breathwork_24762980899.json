@@ -3,7 +3,7 @@
   "activity_name": "Relax and Focus (Short)",
   "activity_type": "breathwork",
   "capture": null,
-  "fetched_at": "2026-10-21T05:52:50.700879Z",
+  "fetched_at": "2026-10-25T07:45:48.950922Z",
   "hr_zones_s": {
     "1": 0.0,
     "2": 0.0,
@@ -2041,7 +2041,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-21T05:52:50.700879Z",
+  "last_successful_fetch_at": "2026-10-25T07:45:48.950922Z",
   "local_date": "2026-10-14",
   "local_start": "2026-10-14T12:21:38",
   "markdown_sha256": "998c1685d0d8964e060311edae7e125b8a8e78626795a2a85ebf2cc9c8664ae5",
@@ -2072,6 +2072,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-10-14T06:51:38Z",
-  "summary_fingerprint": "4449056ab7243c95f405341e9d9daf761bbde79fb4d64b5386aa42e7bff504e3",
+  "summary_fingerprint": "b614d4e28100a712749c827530751cbb0ad55d363f91b961141a772cd49d7e39",
   "timezone": null
 }
