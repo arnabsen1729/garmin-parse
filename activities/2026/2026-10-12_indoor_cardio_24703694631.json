@@ -3,7 +3,7 @@
   "activity_name": "Cardio",
   "activity_type": "indoor_cardio",
   "capture": null,
-  "fetched_at": "2026-10-25T07:45:49.359663Z",
+  "fetched_at": "2026-10-28T08:53:08.212417Z",
   "hr_zones_s": {
     "1": 191.481,
     "2": 416.508,
@@ -39,7 +39,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-25T07:45:49.359663Z",
+  "last_successful_fetch_at": "2026-10-28T08:53:08.212417Z",
   "local_date": "2026-10-12",
   "local_start": "2026-10-12T09:34:20",
   "markdown_sha256": "ff8acc060faf2c32fc671bdba283ae16296e382fe13b0ec255c9b1c0ae89de57",
@@ -70,6 +70,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-10-12T04:04:20Z",
-  "summary_fingerprint": "33b386212f20f7f9590949a50e8aea43141916c13f54b6800e4826841d068f30",
+  "summary_fingerprint": "444f42053b49ea654112db399baa2628f12dc6fd62221dabcb2fa8b9c41fde68",
   "timezone": null
 }

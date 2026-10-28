@@ -3,7 +3,7 @@
   "activity_name": "Walking",
   "activity_type": "walking",
   "capture": null,
-  "fetched_at": "2026-10-26T08:01:58.308077Z",
+  "fetched_at": "2026-10-28T08:53:04.684788Z",
   "hr_zones_s": {
     "1": 312.954,
     "2": 0.0,
@@ -169,7 +169,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-26T08:01:58.308077Z",
+  "last_successful_fetch_at": "2026-10-28T08:53:04.684788Z",
   "local_date": "2026-10-25",
   "local_start": "2026-10-25T16:15:33",
   "markdown_sha256": "2b1db6de4aa2279e9069c983c4817e49b05decfea3908fe50dbc9e5e3a05f958",
@@ -200,6 +200,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-10-25T10:45:33Z",
-  "summary_fingerprint": "bf1aea353922c68e2d561b3227bc324dcdca7c502be1d431761b2a8582733ef1",
+  "summary_fingerprint": "14c71f649f6b6de3ed7b43603f759f1b004b880479e3c7f08004c7acf16fbe1f",
   "timezone": null
 }

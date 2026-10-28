@@ -3,7 +3,7 @@
   "activity_name": "Bengaluru - Base",
   "activity_type": "multi_sport",
   "capture": null,
-  "fetched_at": "2026-10-25T07:46:12.023332Z",
+  "fetched_at": "2026-10-28T08:53:32.212828Z",
   "hr_zones_s": {},
   "laps": [
     {
@@ -59,7 +59,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-25T07:46:12.023332Z",
+  "last_successful_fetch_at": "2026-10-28T08:53:32.212828Z",
   "local_date": "2026-08-23",
   "local_start": "2026-08-23T07:53:51",
   "markdown_sha256": "2d75023184fb2acb86daea6ff04e30eeba59caf282f8ba865b378ede4a7299c0",
@@ -90,6 +90,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-08-23T02:23:51Z",
-  "summary_fingerprint": "5a23f3c9f225802dfe3f40a75001a068cdda17d71ce5c63173cdcce43ef0dad5",
+  "summary_fingerprint": "4294e530ccad26b11d6d21dcd32b6992dade5aaadcf62a6f2982401237ba0258",
   "timezone": null
 }

@@ -3,7 +3,7 @@
   "activity_name": "Indoor Rowing",
   "activity_type": "indoor_rowing",
   "capture": null,
-  "fetched_at": "2026-10-25T07:45:52.186632Z",
+  "fetched_at": "2026-10-28T08:53:10.987408Z",
   "hr_zones_s": {
     "1": 28.0,
     "2": 297.998,
@@ -39,7 +39,7 @@
       }
     }
   ],
-  "last_successful_fetch_at": "2026-10-25T07:45:52.186632Z",
+  "last_successful_fetch_at": "2026-10-28T08:53:10.987408Z",
   "local_date": "2026-09-15",
   "local_start": "2026-09-15T09:24:03",
   "markdown_sha256": "6fe120a84b239df0f72aaa1ed37e108ec37eee568e7f36c841c74960a0837258",
@@ -70,6 +70,6 @@
   "schema_version": 2,
   "source": "garmin_connect",
   "start_timestamp": "2026-09-15T03:54:03Z",
-  "summary_fingerprint": "4c745b06e5782d27fbdcd582980c745422386cf160d7494cf830dd197f01fc14",
+  "summary_fingerprint": "cfc92df0d749cf713f6f8aaaaf6e9750ec913ee46b36973338c703e1bd519a48",
   "timezone": null
 }
