@@ -1,7 +1,7 @@
 {
-  "last_attempt_at": "2026-11-01T09:33:27.276893+00:00",
+  "last_attempt_at": "2026-11-02T09:50:30.758460+00:00",
   "last_complete_history_scan_at": "2026-10-21T05:54:03.598918+00:00",
-  "last_successful_sync_at": "2026-11-01T09:33:28.232910+00:00",
+  "last_successful_sync_at": "2026-11-02T09:50:31.590385+00:00",
   "mode": "incremental",
   "stats": {
     "failed": 0,
