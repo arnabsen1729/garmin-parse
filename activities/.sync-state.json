@@ -1,14 +1,14 @@
 {
-  "last_attempt_at": "2026-11-15T09:46:47.102976+00:00",
+  "last_attempt_at": "2026-11-16T10:03:41.889085+00:00",
   "last_complete_history_scan_at": "2026-10-21T05:54:03.598918+00:00",
-  "last_successful_sync_at": "2026-11-15T09:46:48.059074+00:00",
+  "last_successful_sync_at": "2026-11-16T10:03:44.767143+00:00",
   "mode": "incremental",
   "stats": {
     "failed": 0,
     "history_scanned": true,
     "incomplete": 0,
-    "new": 0,
-    "scanned": 32,
+    "new": 2,
+    "scanned": 34,
     "skipped": 32,
     "storage_warnings": 0,
     "updated": 0
