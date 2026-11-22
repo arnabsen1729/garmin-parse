@@ -1,5 +1,6 @@
 {
-  "last_attempt_at": "2026-11-21T10:04:37.474631+00:00",
+  "failure_phase": "authentication",
+  "last_attempt_at": "2026-11-22T10:07:18.079523+00:00",
   "last_complete_history_scan_at": "2026-10-21T05:54:03.598918+00:00",
   "last_successful_sync_at": "2026-11-21T10:04:38.288480+00:00",
   "mode": "incremental",
@@ -13,5 +14,5 @@
     "storage_warnings": 0,
     "updated": 0
   },
-  "status": "success"
+  "status": "failed"
 }
